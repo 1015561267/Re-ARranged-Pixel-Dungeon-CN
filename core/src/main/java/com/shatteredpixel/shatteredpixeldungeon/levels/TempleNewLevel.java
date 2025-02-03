@@ -1,7 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
@@ -16,7 +15,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.templeChambers.ConfusionC
 import com.shatteredpixel.shatteredpixeldungeon.levels.templeChambers.MazeChamber;
 import com.shatteredpixel.shatteredpixeldungeon.levels.templeChambers.MimicInTheGrassChamber;
 import com.shatteredpixel.shatteredpixeldungeon.levels.templeChambers.MineFieldChamber;
-import com.shatteredpixel.shatteredpixeldungeon.levels.templeChambers.MoistureRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.templeChambers.MoistureChamber;
 import com.shatteredpixel.shatteredpixeldungeon.levels.templeChambers.PiranhaPoolChamber;
 import com.shatteredpixel.shatteredpixeldungeon.levels.templeChambers.SentryChamber;
 import com.shatteredpixel.shatteredpixeldungeon.levels.templeChambers.SentryMazeChamber;
@@ -34,8 +33,8 @@ public class TempleNewLevel extends Level {
         color2 = 0x569545;
     }
 
-    public static final int PEDESTAL_WALL_OFFSET = 8; //the distance of between top wall and amulet cell
-    public static final int PEDESTAL_CHAMBER_OFFSET = 8; //the distance of between amulet cell and chambers' top wall
+    public static final int PEDESTAL_WALL_OFFSET = 3; //the distance of between top wall and amulet cell
+    public static final int PEDESTAL_CHAMBER_OFFSET = 3; //the distance of between amulet cell and chambers' top wall
     public static final int ENTRANCE_WALL_OFFSET = 2; //the distance of between entrance cell and bottom wall
     public static final int ENTRANCE_CHAMBER_OFFSET = 3; //needs to have enough distance for keyCell()
     public static final int CHAMBER_X_NUM      = 2; // chamber's horizontal number, at least 1
@@ -101,6 +100,13 @@ public class TempleNewLevel extends Level {
                 0,
                 LevelTransition.Type.BRANCH_EXIT));
 
+        transitions.add(new LevelTransition(this,
+                amuletCell(),
+                LevelTransition.Type.BRANCH_EXIT,
+                Dungeon.depth+1,
+                2,
+                LevelTransition.Type.BRANCH_ENTRANCE));
+
         buildLevel();
         return true;
     }
@@ -117,7 +123,7 @@ public class TempleNewLevel extends Level {
             SpearGnollChamber.class,
             MazeChamber.class,
             ConfusionChamber.class,
-            MoistureRoom.class,
+            MoistureChamber.class,
     };
     float[] deck = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}; //the sum needs to be equal or less than CHAMBER_NUM_X * CHAMBER_NUM_Y
 
@@ -148,7 +154,7 @@ public class TempleNewLevel extends Level {
         Painter.fill(this, rect, Terrain.WALL);
         Painter.fill(this, rect, 1, Terrain.EMPTY);
 
-        Painter.set(this, amuletPoint(), Terrain.PEDESTAL);
+        Painter.set(this, amuletPoint(), Terrain.EXIT);
 
         Painter.set(this, keyPoint(), Terrain.PEDESTAL);
 

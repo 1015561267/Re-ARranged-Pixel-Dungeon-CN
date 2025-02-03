@@ -30,6 +30,7 @@ public class FT extends Gun {
     {
         max_round = 2;
         round = max_round;
+        shootingAccuracy = 1.5f;
     }
 
     @Override
@@ -92,7 +93,9 @@ public class FT extends Gun {
                     }
                 }
                 for (Char ch : chars) {
-                    curUser.shoot(ch, this);
+                    for (int i=0; i<shotPerShoot(); i++) {
+                        curUser.shoot(ch, this);
+                    }
                     if (ch == hero && !ch.isAlive()) {
                         Dungeon.fail(getClass());
                         Badges.validateDeathFromFriendlyMagic();
