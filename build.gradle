@@ -17,10 +17,10 @@ allprojects {
         appName = 'Rearranged Pixel Dungeon CN'
         appPackageName = 'com.rearrangedpixel.rearrangedpixeldungoncn'
 
-        appVersionCode = 802
-        appVersionName = '2.5.4'
-        appVersionCode += 39
-        appVersionName += '_based_3.22.0_cn'
+        appVersionCode = 833
+        appVersionName = '3.0.2'
+        appVersionCode += 40
+        appVersionName += '_based_3.23.0_cn'
 
         appJavaCompatibility = JavaVersion.VERSION_1_8
 
