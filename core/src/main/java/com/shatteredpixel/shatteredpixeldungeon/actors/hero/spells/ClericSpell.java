@@ -147,6 +147,9 @@ public abstract class ClericSpell {
 
 			} else if (cleric.subClass == HeroSubClass.PALADIN){
 				spells.add(Smite.INSTANCE);
+
+			} else if (cleric.subClass == HeroSubClass.ENCHANTER) {
+				spells.add(SpellBlast.INSTANCE);
 			}
 
 			if (cleric.hasTalent(Talent.CLEANSE)){
@@ -189,6 +192,19 @@ public abstract class ClericSpell {
 			}
 			if (cleric.hasTalent(Talent.INDUCE_AGGRO)){
 				spells.add(InduceAggro.INSTANCE);
+			}
+
+			if (cleric.hasTalent(Talent.TIME_AMP)) {
+				spells.add(TimeAmp.INSTANCE);
+			}
+			if (cleric.hasTalent(Talent.WEAKENING_HEX)) {
+				spells.add(WeakeningHex.INSTANCE);
+			}
+			if (cleric.hasTalent(Talent.STUN)) {
+				spells.add(Stun.INSTANCE);
+			}
+			if (cleric.hasTalent(Talent.ELEMENT_IMBUE)) {
+				spells.add(ElementImbue.INSTANCE);
 			}
 
 		} else if (tier == 4){
@@ -261,6 +277,12 @@ public abstract class ClericSpell {
 		spells.add(DivineRay.INSTANCE);
 		spells.add(HolyBombSpell.INSTANCE);
 		spells.add(Resurrection.INSTANCE);
+		//Enchanter spells
+		spells.add(SpellBlast.INSTANCE);
+		spells.add(TimeAmp.INSTANCE);
+		spells.add(WeakeningHex.INSTANCE);
+		spells.add(Stun.INSTANCE);
+		spells.add(ElementImbue.INSTANCE);
 		//4 tier
 		spells.add(DivineIntervention.INSTANCE);
 		spells.add(Judgement.INSTANCE);

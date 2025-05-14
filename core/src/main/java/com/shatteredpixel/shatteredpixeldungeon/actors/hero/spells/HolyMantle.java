@@ -1,5 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells;
 
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -11,6 +12,7 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.noosa.audio.Sample;
 
 public class HolyMantle extends TargetedClericSpell {
     public static final HolyMantle INSTANCE = new HolyMantle();
@@ -29,12 +31,18 @@ public class HolyMantle extends TargetedClericSpell {
     protected void onTargetSelected(HolyTome tome, Hero hero, Integer target) {
         if (target == null) return;
 
-        Char ch = Actor.findChar(target);
-
-        if (ch == null) {
-            GLog.w(Messages.get(this, "no_target"));
+        if (!Dungeon.level.heroFOV[target]) {
+            GLog.w(Messages.get(ClericSpell.class, "not_in_fov"));
             return;
         }
+
+        Char ch = Actor.findChar(target);
+        if (ch == null) {
+            GLog.w(Messages.get(ClericSpell.class, "no_target"));
+            return;
+        }
+
+        Sample.INSTANCE.play(Assets.Sounds.READ);
 
         hero.busy();
         hero.spendAndNext(Actor.TICK);
@@ -56,7 +64,7 @@ public class HolyMantle extends TargetedClericSpell {
             return BuffIndicator.HOLY_MANTLE;
         }
 
-        public static float damageReduction(float damage) {
+        public static float DamageReduction(float damage) {
             return Math.max(0, damage * (1 - 0.25f * (1+Dungeon.hero.pointsInTalent(Talent.HOLY_MANTLE))));
         }
 
