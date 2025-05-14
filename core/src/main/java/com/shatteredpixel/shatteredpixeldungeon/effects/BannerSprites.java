@@ -27,6 +27,8 @@ import com.watabou.noosa.Image;
 public class BannerSprites {
 
 	public enum  Type {
+        PIXEL_DUNGEON,
+        PIXEL_DUNGEON_SIGNS,
 		TITLE_PORT,
 		TITLE_GLOW_PORT,
 		TITLE_LAND,
