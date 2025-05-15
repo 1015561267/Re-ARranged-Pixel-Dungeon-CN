@@ -92,7 +92,7 @@ public class HealingGenerator extends ArmorAbility {
 			int affected = 0;
 			for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
 				if (mob.alignment == Char.Alignment.ALLY) {
-					int healAmt = Math.max((2*hero.pointsInTalent(Talent.HEALING_AMP) + 8)-2*Dungeon.level.distance(hero.pos, mob.pos), 0); //기본 회복량은 8이나, 아군이 최소 1타일은 떨어져 있기 때문에 실질적인 초기 회복량은 6이 된다.
+					int healAmt = Math.max((2*hero.pointsInTalent(Talent.HEALING_AMP) + 10)-2*Dungeon.level.distance(hero.pos, mob.pos), 0); //기본 회복량은 10이나, 아군이 최소 1타일은 떨어져 있기 때문에 실질적인 초기 회복량은 8이 된다.
 					if (healAmt > 0 && mob.HP < mob.HT) { //최대 체력인 아군은 회복시키지 않으며, 적용된 아군 숫자에도 포함시키지 않음
 						mob.heal(healAmt);
 						affected++;
@@ -104,9 +104,10 @@ public class HealingGenerator extends ArmorAbility {
 				affected = Math.min(affected, 8); //최대 8체까지만 적용
 				for (int i = 0; i < affected; i++) {
 					Barrier barrier = Buff.affect(hero, Barrier.class);
-					barrier.incShield(hero.pointsInTalent(Talent.SHIELD_GEN));
-					if (barrier.shielding() > Math.round(hero.HT*0.8f)) { //실드가 최대 체력의 80%를 넘어갈 경우 방어막 양을 최대 체력의 80%로 설정
+					if (barrier.shielding()+hero.pointsInTalent(Talent.SHIELD_GEN) > Math.round(hero.HT*0.8f)) { //실드가 최대 체력의 80%를 넘어갈 경우 방어막 양을 최대 체력의 80%로 설정
 						barrier.setShield(Math.round(hero.HT*0.8f));
+					} else {
+						barrier.incShield(hero.pointsInTalent(Talent.SHIELD_GEN));
 					}
 				}
 			}
