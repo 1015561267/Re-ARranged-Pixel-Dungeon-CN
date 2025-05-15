@@ -141,7 +141,7 @@ public class Assets {
 		public static final String WINDOWS  = "messages/windows/windows";
 	}
 
-	/*public static class NewMessages {
+	public static class NewMessages {
 		public static final String ACTORS   = "new_messages/actors/actors";
 		public static final String ITEMS    = "new_messages/items/items";
 		public static final String JOURNAL  = "new_messages/journal/journal";
@@ -150,8 +150,8 @@ public class Assets {
 		public static final String PLANTS   = "new_messages/plants/plants";
 		public static final String SCENES   = "new_messages/scenes/scenes";
 		public static final String UI       = "new_messages/ui/ui";
-		public static final String WINDOWS  = "new_messages/windows/windows"
-	}*/
+		public static final String WINDOWS  = "new_messages/windows/windows";
+	}
 
 	public static class Music {
 		public static final String THEME_1              = "music/theme_1.ogg";

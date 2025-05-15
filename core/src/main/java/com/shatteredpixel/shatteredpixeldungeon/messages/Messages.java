@@ -64,15 +64,24 @@ public class Messages {
 	 */
 
 	private static String[] prop_files = new String[]{ // 새로운 파일을 먼저 읽어서 해당 파일에 문장이 없으면 원문으로 넘어감
-			Assets.Messages.ACTORS,
-			Assets.Messages.ITEMS,
-			Assets.Messages.JOURNAL,
-			Assets.Messages.LEVELS,
-			Assets.Messages.MISC,
-			Assets.Messages.PLANTS,
-			Assets.Messages.SCENES,
-			Assets.Messages.UI,
-			Assets.Messages.WINDOWS
+            Assets.NewMessages.ACTORS,
+            Assets.Messages.ACTORS,
+            Assets.NewMessages.ITEMS,
+            Assets.Messages.ITEMS,
+            Assets.NewMessages.JOURNAL,
+            Assets.Messages.JOURNAL,
+            Assets.NewMessages.LEVELS,
+            Assets.Messages.LEVELS,
+            Assets.NewMessages.MISC,
+            Assets.Messages.MISC,
+            Assets.NewMessages.PLANTS,
+            Assets.Messages.PLANTS,
+            Assets.NewMessages.SCENES,
+            Assets.Messages.SCENES,
+            Assets.NewMessages.UI,
+            Assets.Messages.UI,
+            Assets.NewMessages.WINDOWS,
+            Assets.Messages.WINDOWS
 	};
 
 	static{

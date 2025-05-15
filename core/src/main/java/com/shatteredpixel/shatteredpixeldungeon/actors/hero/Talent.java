@@ -2693,7 +2693,7 @@ public enum Talent {
 				Collections.addAll(tierTalents, SHOCKWAVE, ARMORED_HORSE, DASH_ENHANCE, BUFFER, PARKOUR, PILOTING);
 				break;
 			case CRUSADER:
-				Collections.addAll(tierTalents, HOLY_SHIELD, PRAY_FOR_DEAD, JUDGEMENT, CLEANSING_PRAY, PUNISHMENT, ANTI_DEMON);
+				Collections.addAll(tierTalents, HOLY_SHIELD, PRAY_FOR_DEAD, JUDGEMENT_1, CLEANSING_PRAY, PUNISHMENT, ANTI_DEMON);
 				break;
 			case SAVIOR:
 				Collections.addAll(tierTalents, RECRUIT, DELAYED_HEALING, APPEASE, ADRENALINE, STIMPACK, MEDICAL_RAY);
