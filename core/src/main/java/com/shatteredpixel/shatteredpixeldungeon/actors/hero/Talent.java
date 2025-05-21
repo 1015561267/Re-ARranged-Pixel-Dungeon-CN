@@ -2219,7 +2219,7 @@ public enum Talent {
 				enemy.sprite.emitter().start( ShadowParticle.UP, 0.05f, 3 );
 				Sample.INSTANCE.play(Assets.Sounds.BURNING);
 
-				damage = (int)Math.pow(1.1f, hero.pointsInTalent(Talent.BIOLOGY_PROJECT));
+				damage = damage * (int)Math.pow(1.1f, hero.pointsInTalent(Talent.BIOLOGY_PROJECT));
 			}
 		}
 
@@ -2258,10 +2258,6 @@ public enum Talent {
 		if (hero.buff(TreasureMap.LuckTracker.class) != null
 				&& enemy.HP <= damage) {
 			Buff.affect(enemy, Lucky.LuckProc.class);
-		}
-
-		if (hero.buff(Sheath.CertainCrit.class) != null) {
-			hero.buff(Sheath.CertainCrit.class).hit();
 		}
 
 		if (hero.subClass == HeroSubClass.CRUSADER && hero.buff(Bless.class) != null) {

@@ -167,6 +167,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.potions.elixirs.ElixirOfTa
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.PotionOfDivineInspiration;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.DarkGold;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.Pickaxe;
+import com.shatteredpixel.shatteredpixeldungeon.items.remains.BrokenShield;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfAccuracy;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfArcana;
@@ -1057,6 +1058,10 @@ public class Hero extends Char {
 			return 0;
 		}
 
+		if (buff(Awakening.class) != null && buff(Awakening.class).isAwaken() && buff(Sheath.CriticalAttack.class) != null) {
+			return 0;
+		}
+
 		float delay = 1f;
 
 		if ( buff(Adrenaline.class) != null) delay /= 1.5f;
@@ -1090,8 +1095,7 @@ public class Hero extends Char {
 				speed *= 1 + 0.05f * hero.pointsInTalent(Talent.ATK_SPEED_ENHANCE);
 			}
 
-			Awakening awakening = hero.buff(Awakening.class);
-			if (awakening != null && awakening.isAwaken()) {
+			if (buff(Awakening.class) != null && buff(Awakening.class).isAwaken()) {
 				speed *= 2f;
 			}
 
@@ -1884,6 +1888,9 @@ public class Hero extends Char {
 			chance += 0.05f;
 		}
 
+		System.out.println("CritChance() : " + chance);
+		System.out.println("CritChance() after gate : " + GameMath.gate(0, chance, 2));
+
 		return GameMath.gate(0, chance, 2);
 	}
 
@@ -2196,7 +2203,10 @@ public class Hero extends Char {
 		}
 
 		if (wep instanceof Weapon) {
-			if (Random.Float() < hero.critChance(enemy, (Weapon)wep)) {
+			float randomFloat = Random.Float();
+			System.out.println("randomFloat : "+randomFloat);
+			System.out.println("current chance : "+hero.critChance(enemy, (Weapon)wep));
+			if (randomFloat < hero.critChance(enemy, (Weapon)wep)) {
 				damage = hero.criticalDamage(damage, (Weapon)wep, enemy);
 
 				Buff.affect(enemy, Sheath.CriticalAttack.class);
@@ -2207,7 +2217,6 @@ public class Hero extends Char {
 
 				Awakening awakening = hero.buff(Awakening.class);
 				if (awakening != null && awakening.isAwaken()) {
-					hero.spend(-hero.attackDelay());
 					if (hero.hasTalent(Talent.STABLE_BARRIER)) {
 						int shield = 1;
 						int maxShield = Math.round(hero.HT * 0.2f * hero.pointsInTalent(Talent.STABLE_BARRIER));
@@ -2225,6 +2234,10 @@ public class Hero extends Char {
 					Buff.prolong(hero, Sheath.FlashSlashCooldown.class, (30-5*hero.pointsInTalent(Talent.STATIC_PREPARATION))-1);
 				}
 			}
+		}
+
+		if (hero.buff(Sheath.CertainCrit.class) != null) {
+			hero.buff(Sheath.CertainCrit.class).hit();
 		}
 
 		return damage;
@@ -2309,6 +2322,11 @@ public class Hero extends Char {
 
 		damage = Talent.onDefenseProc(this, enemy, damage);
 
+		if (buff(BrokenShield.DRBuff.class) != null) {
+			damage = 0;
+			buff(BrokenShield.DRBuff.class).detach();
+		}
+
 		return super.defenseProc( enemy, damage );
 	}
 
@@ -2362,15 +2380,22 @@ public class Hero extends Char {
 			}
 			//고통 저항 버프 효과
 			if (buff(PainKiller.class) != null) {
-				dmg *= 0.5f;
+				damage *= 0.5f;
 			}
 		}
 
 		//unused, could be removed
 		CapeOfThorns.Thorns thorns = buff( CapeOfThorns.Thorns.class );
 		if (thorns != null) {
-			dmg = thorns.proc(dmg, (src instanceof Char ? (Char)src : null),  this);
+			damage = thorns.proc(dmg, (src instanceof Char ? (Char)src : null),  this);
 		}
+
+		if (buff(Talent.WarriorFoodImmunity.class) != null){
+			if (pointsInTalent(Talent.IRON_STOMACH) == 1)       damage /= 4f;
+			else if (pointsInTalent(Talent.IRON_STOMACH) == 2)  damage = 0;
+		}
+
+		dmg = Math.round(damage);
 
 		//~17%/~33% damage reduction, proportional to hero's lost health
 		if (hero.hasTalent(Talent.PROTECTION)) {
@@ -2417,11 +2442,6 @@ public class Hero extends Char {
 				&& AntiMagic.RESISTS.contains(src.getClass())) {
 			dmg -= LanceNShield.drRoll(belongings.secondWep().buffedLvl());
 			dmg = Math.max(dmg, 0);
-		}
-
-		if (buff(Talent.WarriorFoodImmunity.class) != null){
-			if (pointsInTalent(Talent.IRON_STOMACH) == 1)       damage /= 4f;
-			else if (pointsInTalent(Talent.IRON_STOMACH) == 2)  damage = 0;
 		}
 
 		if (buff(Tackle.SuperArmorTracker.class) != null) {
