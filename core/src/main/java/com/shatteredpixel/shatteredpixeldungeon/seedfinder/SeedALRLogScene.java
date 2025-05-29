@@ -7,7 +7,7 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.SeedFinderScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.TitleScene;
-import com.shatteredpixel.shatteredpixeldungeon.seedfinder.SeedFinder;
+
 import com.shatteredpixel.shatteredpixeldungeon.ui.Archs;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ExitButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
@@ -69,7 +69,8 @@ public class SeedALRLogScene extends PixelScene {
                     ShatteredPixelDungeon.scene().addToFront(r);
 
                     thread = new Thread(() -> {
-                        s = new SeedFinder().logSeedItems(Long.toString(seed),SPDSettings.seedfinderFloors(),SPDSettings.challenges());
+                        //s = new SeedFinder().logSeedItems(Long.toString(seed),SPDSettings.seedfinderFloors(),SPDSettings.challenges());
+                        s = new SeedFinder().logSeedItems(Long.toString(seed),SPDSettings.seedfinderFloors());
                         Gdx.app.postRunnable(() -> {
                             r.destroy();
 

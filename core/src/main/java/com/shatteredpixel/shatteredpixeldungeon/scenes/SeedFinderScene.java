@@ -74,7 +74,7 @@ public class SeedFinderScene extends PixelScene {
         btnExit.setPos(w - btnExit.width(), 0);
         add(btnExit);
 
-		Image title = BannerSprites.get( BannerSprites.Type.PIXEL_DUNGEON );
+		Image title = BannerSprites.get( BannerSprites.Type.TITLE_PORT );
 		add( title );
 
 		float topRegion = Math.max(title.height - 6, h*0.45f);
@@ -84,7 +84,7 @@ public class SeedFinderScene extends PixelScene {
 
 		align(title);
 
-		Image signs = new Image( BannerSprites.get( BannerSprites.Type.PIXEL_DUNGEON_SIGNS ) ) {
+		Image signs = new Image( BannerSprites.get( BannerSprites.Type.TITLE_GLOW_PORT ) ) {
 			private float time = 0;
 			@Override
 			public void update() {

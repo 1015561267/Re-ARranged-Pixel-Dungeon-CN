@@ -1246,9 +1246,9 @@ public enum Talent {
 
 	public static class WarCryTracker extends Buff {}
 
-	public static class PrayForDeadTracker extends FlavourBuff {
-		public static final float DURATION = 1f;
-	}
+    public static class PrayForDeadTracker extends FlavourBuff {
+        public static final float DURATION = 1f;
+    }
 
 	public static class JudgementTracker extends FlavourBuff {
 

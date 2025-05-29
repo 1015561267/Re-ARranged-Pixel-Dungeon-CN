@@ -675,7 +675,7 @@ public abstract class Char extends Actor {
 			if (judgement != null) {
 				if ( enemy.isAlive() && enemy.alignment != alignment && !Char.hasProp(enemy, Property.BOSS)
 						&& !Char.hasProp(enemy, Property.MINIBOSS) && this instanceof Hero &&
-						(enemy.HP/(float)enemy.HT) <= 0.4f*((Hero)this).pointsInTalent(Talent.JUDGEMENT)/3f) {
+						(enemy.HP/(float)enemy.HT) <= 0.4f*((Hero)this).pointsInTalent(Talent.GODS_JUDGEMENT)/3f) {
 					enemy.HP = 0;
 					if (!enemy.isAlive()) {
 						enemy.die(this);
