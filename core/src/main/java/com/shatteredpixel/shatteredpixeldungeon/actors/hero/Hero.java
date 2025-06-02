@@ -206,6 +206,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.alchemy.Lance
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.alchemy.LanceNShield;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.alchemy.ObsidianShield;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.alchemy.UnholyBible;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.bow.BowWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.gun.Gun;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.gun.SG.SG;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.DisposableMissileWeapon;
@@ -698,6 +699,10 @@ public class Hero extends Char {
 				hero.buff(Sheath.Sheathing.class) != null &&
 				hero.buff(Sheath.FlashSlashCooldown.class) == null &&
 				hero.buff(Sheath.DashAttackTracker.class) == null) {
+			accuracy = INFINITE_ACCURACY;
+		}
+
+		if (hero.buff(BowWeapon.PenetrationShotBuff.class) != null && wep instanceof BowWeapon.Arrow) {
 			accuracy = INFINITE_ACCURACY;
 		}
 
@@ -1887,9 +1892,6 @@ public class Hero extends Char {
 			}
 			chance += 0.05f;
 		}
-
-		System.out.println("CritChance() : " + chance);
-		System.out.println("CritChance() after gate : " + GameMath.gate(0, chance, 2));
 
 		return GameMath.gate(0, chance, 2);
 	}

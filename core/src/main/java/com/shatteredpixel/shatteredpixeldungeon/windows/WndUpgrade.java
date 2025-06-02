@@ -36,6 +36,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Greatshield;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.RoundShield;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.bow.BowWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.gun.Gun;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Languages;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -319,6 +321,22 @@ public class WndUpgrade extends Window {
 			bottom = fillFields(Messages.get(this, "chance_bonus"),
 					"+"+Math.min(100, 10*levelFrom)+"%",
 					"+"+Math.min(100, 10*levelTo)+"%",
+					bottom);
+		}
+
+		if (toUpgrade instanceof BowWeapon) {
+			BowWeapon bow = (BowWeapon) toUpgrade;
+			bottom = fillFields(Messages.get(this, "arrow_damage"),
+					bow.arrowMin(levelFrom)+"-"+bow.arrowMax(levelFrom),
+					bow.arrowMin(levelTo)+"-"+bow.arrowMax(levelTo),
+					bottom);
+		}
+
+		if (toUpgrade instanceof Gun) {
+			Gun gun = (Gun) toUpgrade;
+			bottom = fillFields(Messages.get(this, "bullet_damage"),
+					gun.bulletMin(levelFrom)+"-"+gun.bulletMax(levelFrom),
+					gun.bulletMin(levelTo)+"-"+gun.bulletMax(levelTo),
 					bottom);
 		}
 

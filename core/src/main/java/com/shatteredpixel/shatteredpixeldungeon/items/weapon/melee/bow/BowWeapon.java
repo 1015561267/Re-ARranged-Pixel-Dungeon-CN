@@ -1,23 +1,28 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.bow;
 
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.items.ArrowItem;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.bow.SpiritBow;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Elastic;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.DisposableMissileWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
@@ -43,7 +48,7 @@ public class BowWeapon extends MeleeWeapon {
 
     @Override
     public int max(int lvl) {
-        return tier()*2
+        return 2+tier()
                 +lvl;
     }
 
@@ -57,7 +62,7 @@ public class BowWeapon extends MeleeWeapon {
     }
 
     public int arrowMax(int lvl) {
-        return 5*(tier()+1) +
+        return 3*(tier()+1) +
                 lvl*(tier()+1);
     }
 
@@ -77,7 +82,7 @@ public class BowWeapon extends MeleeWeapon {
         //적과 근접한 상태에서 공격 시 40% 확률로, 혹은 기습 공격 시 적을 2타일 밀쳐냄
         if (Dungeon.level.adjacent(attacker.pos, defender.pos)
                 && ((defender instanceof Mob && ((Mob) defender).surprisedBy(attacker)) || Random.Float() < 0.4f)) {
-            Elastic.pushEnemy(this, attacker, defender, 2);
+            pushEnemy(this, attacker, defender, 2);
         }
         return super.proc(attacker, defender, damage);
     }
@@ -124,6 +129,34 @@ public class BowWeapon extends MeleeWeapon {
         }
     }
 
+    protected void duelistAbility( Hero hero, Integer target ){
+        if (hero.buff(PenetrationShotBuff.class) != null) {
+            GLog.w(Messages.get(this, "already_used"));
+            return;
+        }
+
+        beforeAbilityUsed(hero, null);
+
+        hero.sprite.operate(hero.pos);
+        hero.spendAndNext(0);
+        Buff.affect(hero, PenetrationShotBuff.class);
+        Sample.INSTANCE.play(Assets.Sounds.MISS);
+
+        afterAbilityUsed(hero);
+    }
+
+    @Override
+    public String abilityInfo() {
+        int lvl = levelKnown ? buffedLvl() : 0;
+        int min = arrowMin(lvl) + lvl + Math.round(arrowMin(lvl)*(7-tier())*0.1f);
+        int max = arrowMax(lvl) + lvl + Math.round(arrowMax(lvl)*(7-tier())*0.1f);
+        if (levelKnown){
+            return Messages.get(this, "ability_desc", augment.damageFactor(min), augment.damageFactor(max));
+        } else {
+            return Messages.get(this, "typical_ability_desc", augment.damageFactor(min), augment.damageFactor(max));
+        }
+    }
+
     public Arrow knockArrow(){
         return new Arrow();
     }
@@ -131,6 +164,8 @@ public class BowWeapon extends MeleeWeapon {
     public class Arrow extends DisposableMissileWeapon {
         {
             image = ItemSpriteSheet.NORMAL_ARROW;
+            tier = BowWeapon.this.tier();
+            hitSound = Assets.Sounds.HIT_ARROW;
         }
 
         @Override
@@ -146,6 +181,26 @@ public class BowWeapon extends MeleeWeapon {
         @Override
         public int damageRoll(Char owner) {
             int damage = arrowDamage();
+            if (owner instanceof Hero) {
+                Hero hero = (Hero)owner;
+                Char enemy = hero.enemy();
+                if (enemy instanceof Mob && ((Mob) enemy).surprisedBy(hero)) {
+                    //deals 50% toward max to max on surprise, instead of min to max.
+                    int diff = arrowMax() - arrowMin();
+                    damage = augment.damageFactor(Hero.heroDamageIntRange(
+                            arrowMin() + Math.round(diff*(3/(3f+tier))), //75%, 60%, 50%, 43%, 38% toward max
+                            arrowMax()));
+                    int exStr = hero.STR() - STRReq();
+                    if (exStr > 0) {
+                        damage += Hero.heroDamageIntRange(0, exStr);
+                    }
+                }
+
+                if (hero.buff(PenetrationShotBuff.class) != null) {
+                    damage = hero.buff(PenetrationShotBuff.class).proc(damage, this.buffedLvl(), this.tier);
+                    Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
+                }
+            }
             return damage;
         }
 
@@ -172,7 +227,7 @@ public class BowWeapon extends MeleeWeapon {
         @Override
         protected void onThrow(int cell) {
             Char enemy = Actor.findChar( cell );
-            if (enemy != null) {
+            if (enemy != null && !(enemy instanceof Hero)) {
                 if (curUser.shoot( enemy, this )) {
                     if (Random.Float() < 0.25f) {
                         if (enemy.isAlive()) {
@@ -188,8 +243,10 @@ public class BowWeapon extends MeleeWeapon {
                 }
             }
 
-            if (enemy == null) {
-                dropArrow(cell);
+            if (enemy == null || enemy instanceof Hero) {
+                if (Random.Float() < 0.25f) {
+                    dropArrow(cell);
+                }
             }
 
             onShoot();
@@ -202,7 +259,16 @@ public class BowWeapon extends MeleeWeapon {
         public void onShoot() {
             Dungeon.bullet--;
 
+            if (Dungeon.hero.buff(PenetrationShotBuff.class) != null) {
+                Dungeon.hero.buff(PenetrationShotBuff.class).detach();
+            }
+
             updateQuickslot();
+        }
+
+        @Override
+        public void throwSound() {
+            Sample.INSTANCE.play( Assets.Sounds.ATK_SPIRITBOW, 1, Random.Float(0.87f, 1.15f) );
         }
     }
 
@@ -211,7 +277,14 @@ public class BowWeapon extends MeleeWeapon {
         public void onSelect( Integer target ) {
             if (target != null) {
                 if (target == curUser.pos) {
-                    return;
+                    if (Dungeon.hero.heroClass == HeroClass.DUELIST && Dungeon.hero.buff(Charger.class) != null) {
+                        Charger charger = Dungeon.hero.buff(Charger.class);
+                        if (charger.charges >= 1) {
+                            duelistAbility(Dungeon.hero, target);
+                        } else {
+                            GLog.w(Messages.get(MeleeWeapon.class, "ability_no_charge"));
+                        }
+                    }
                 } else {
                     knockArrow().cast(curUser, target);
                 }
@@ -288,6 +361,35 @@ public class BowWeapon extends MeleeWeapon {
         @Override
         public String desc() {
             return Messages.get(this, "desc", arrows, left);
+        }
+    }
+
+    public static void pushEnemy(Weapon weapon, Char attacker, Char defender, int power) {
+        //trace a ballistica to our target (which will also extend past them
+        Ballistica trajectory = new Ballistica(attacker.pos, defender.pos, Ballistica.STOP_TARGET);
+        //trim it to just be the part that goes past them
+        trajectory = new Ballistica(trajectory.collisionPos, trajectory.path.get(trajectory.path.size()-1), Ballistica.PROJECTILE);
+        //knock them back along that ballistica
+        WandOfBlastWave.throwChar(defender,
+                trajectory,
+                power,
+                false,
+                false,
+                BowWeapon.class);
+    }
+
+    public static class PenetrationShotBuff extends Buff {
+        {
+            type = buffType.NEUTRAL;
+        }
+
+        @Override
+        public int icon() {
+            return BuffIndicator.DUEL_BOW;
+        }
+
+        public int proc(int damage, int lvl, int tier) {
+            return damage + lvl + Math.round(damage*(7-tier)*0.1f);
         }
     }
 }
