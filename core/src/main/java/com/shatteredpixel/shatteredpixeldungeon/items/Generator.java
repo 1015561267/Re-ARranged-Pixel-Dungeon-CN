@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2024 Evan Debenham
+ * Copyright (C) 2014-2025 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -148,6 +148,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ChaoticCenser;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.DimensionalSundial;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ExoticCrystals;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.EyeOfNewt;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.FerretTuft;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.MagicalCompass;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.MimicTooth;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.MossyClump;
@@ -295,6 +296,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingSt
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Tomahawk;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Trident;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.alchemy.Cross;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.alchemy.ThunderBolt;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.Dart;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Blindweed;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Earthroot;
@@ -793,9 +795,10 @@ public class Generator {
 			MIS_T5.probs = MIS_T5.defaultProbs.clone();
 
 			MIS_SP.classes = new Class<?>[]{
-					Cross.class
+					Cross.class,
+					ThunderBolt.class
 			};
-			MIS_SP.defaultProbs = new float[]{ 0 };
+			MIS_SP.defaultProbs = new float[]{ 0, 0 };
 			MIS_SP.probs = MIS_SP.defaultProbs.clone();
 			
 			FOOD.classes = new Class<?>[]{
@@ -857,6 +860,8 @@ public class Generator {
 					VialOfBlood.class,
 					ShardOfOblivion.class,
 					ChaoticCenser.class,
+					FerretTuft.class,
+					//new trinkets
 					MagicalCompass.class,
 					CrystalBall.class,
 					BrokenMagnifyingGlass.class,
@@ -864,7 +869,7 @@ public class Generator {
 					PinkGem.class,
 					Necklace.class
 			};
-			TRINKET.defaultProbs = new float[]{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  1, 1, 1, 1, 1, 1 };
+			TRINKET.defaultProbs = new float[]{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  1, 1, 1, 1, 1, 1 };
 			TRINKET.probs = TRINKET.defaultProbs.clone();
 
 			for (Category cat : Category.values()){

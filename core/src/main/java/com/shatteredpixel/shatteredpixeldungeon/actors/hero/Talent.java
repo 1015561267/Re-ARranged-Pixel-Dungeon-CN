@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2024 Evan Debenham
+ * Copyright (C) 2014-2025 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +49,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HorseRiding;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.InfiniteBullet;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LostInventory;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MindVision;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Ooze;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
@@ -556,11 +557,11 @@ public enum Talent {
 	CORROSIVE_KUNAI				(39, 7, 4),
 
 	//Adventurer T1
-	NATURE_FRIENDLY				(0, 8),
+	HARVEST_BERRY				(0, 8),
 	SAFE_POTION					(1, 8),
 	ROOT						(2, 8),
-	PLANT_BARRIER				(3, 8),
-	ROPE_MAKING					(4, 8),
+	PROTECTIVE_SLASH			(3, 8),
+	KINETIC_ATTACK				(4, 8),
 	//Adventurer T2
 	NATURES_MEAL				(5, 8),
 	PHARMACEUTICS				(6, 8),
@@ -1096,6 +1097,24 @@ public enum Talent {
 		public String desc() { return Messages.get(this, "desc", dispTurns(visualcooldown())); }
 	};
 
+
+	//adventurer talent buff
+	//1-4
+	public static class ProtectiveSlashCooldown extends FlavourBuff{
+		public int icon() { return BuffIndicator.TIME; }
+		public void tintIcon(Image icon) { icon.hardlight(0.8f, 0.8f, 0.8f); }
+		public float iconFadePercent() { return Math.max(0, 1f - (visualcooldown() / 10)); }
+		public String toString() { return Messages.get(this, "name"); }
+		public String desc() { return Messages.get(this, "desc", dispTurns(visualcooldown())); }
+	};
+	//1-5
+	public static class KineticAttackTracker extends FlavourBuff {
+		{ type = Buff.buffType.POSITIVE; }
+		public int icon() { return BuffIndicator.INVERT_MARK; }
+		public void tintIcon(Image icon) { icon.hardlight(0f, 0.75f, 0f); }
+		public float iconFadePercent() { return Math.max(0, 1f - (visualcooldown() / 5)); }
+	};
+
 	//Samurai 1-3 meta
 	public static class DrawEnhanceMetaTracker extends Buff {}
 	//Samurai 2-3
@@ -1289,6 +1308,8 @@ public enum Talent {
 		public String toString() { return Messages.get(this, "name"); }
 		public String desc() { return Messages.get(this, "desc", dispTurns(visualcooldown())); }
 	};
+
+
 
 	int icon;
 	int maxPoints;
@@ -1557,6 +1578,7 @@ public enum Talent {
 
 	public static class CachedRationsDropped extends CounterBuff{{revivePersists = true;}};
 	public static class NatureBerriesDropped extends CounterBuff{{revivePersists = true;}};
+	public static class HarvestBerriesDropped extends CounterBuff{{revivePersists = true;}};
 
 	public static void onFoodEaten( Hero hero, float foodVal, Item foodSource ){
 		if (hero.hasTalent(HEARTY_MEAL)){
@@ -1578,20 +1600,15 @@ public enum Talent {
 			Buff.affect( hero, WandEmpower.class).set(1 + hero.pointsInTalent(EMPOWERING_MEAL), 3);
 			ScrollOfRecharging.charge( hero );
 		}
+		int wandChargeTurns = 0;
 		if (hero.hasTalent(ENERGIZING_MEAL)){
 			//5/8 turns of recharging
-			Buff.prolong( hero, Recharging.class, 2 + 3*(hero.pointsInTalent(ENERGIZING_MEAL)) );
-			ScrollOfRecharging.charge( hero );
-			SpellSprite.show(hero, SpellSprite.CHARGE);
+			wandChargeTurns += 2 + 3*hero.pointsInTalent(ENERGIZING_MEAL);
 		}
+		int artifactChargeTurns = 0;
 		if (hero.hasTalent(MYSTICAL_MEAL)){
 			//3/5 turns of recharging
-			ArtifactRecharge buff = Buff.affect( hero, ArtifactRecharge.class);
-			if (buff.left() < 1 + 2*(hero.pointsInTalent(MYSTICAL_MEAL))){
-				Buff.affect( hero, ArtifactRecharge.class).set(1 + 2*(hero.pointsInTalent(MYSTICAL_MEAL))).ignoreHornOfPlenty = foodSource instanceof HornOfPlenty;
-			}
-			ScrollOfRecharging.charge( hero );
-			SpellSprite.show(hero, SpellSprite.CHARGE, 0, 1, 1);
+			artifactChargeTurns += 1 + 2*hero.pointsInTalent(MYSTICAL_MEAL);
 		}
 		if (hero.hasTalent(INVIGORATING_MEAL)){
 			//effectively 1/2 turns of haste
@@ -1628,18 +1645,82 @@ public enum Talent {
 			if (hero.heroClass == HeroClass.CLERIC) {
 				HolyTome tome = hero.belongings.getItem(HolyTome.class);
 				if (tome != null) {
-					tome.directCharge( 0.5f * (1+hero.pointsInTalent(ENLIGHTENING_MEAL)));
+					// 2/3 of a charge at +1, 1 full charge at +2
+					tome.directCharge( (1+hero.pointsInTalent(ENLIGHTENING_MEAL))/3f );
 					ScrollOfRecharging.charge(hero);
 				}
 			} else {
-				//2/3 turns of recharging
-				ArtifactRecharge buff = Buff.affect( hero, ArtifactRecharge.class);
-				if (buff.left() < 1 + (hero.pointsInTalent(ENLIGHTENING_MEAL))){
-					Buff.affect( hero, ArtifactRecharge.class).set(1 + (hero.pointsInTalent(ENLIGHTENING_MEAL))).ignoreHornOfPlenty = foodSource instanceof HornOfPlenty;
+				//2/3 turns of recharging, both kinds
+				wandChargeTurns += 1 + hero.pointsInTalent(ENLIGHTENING_MEAL);
+				artifactChargeTurns += 1 + hero.pointsInTalent(ENLIGHTENING_MEAL);
+			}
+		}
+
+		//we process these at the end as they can stack together from some talents
+		if (wandChargeTurns > 0){
+			Buff.prolong( hero, Recharging.class, wandChargeTurns );
+			ScrollOfRecharging.charge( hero );
+			SpellSprite.show(hero, SpellSprite.CHARGE);
+		}
+		if (artifactChargeTurns > 0){
+			ArtifactRecharge buff = Buff.affect( hero, ArtifactRecharge.class);
+			if (buff.left() < artifactChargeTurns){
+				buff.set(artifactChargeTurns).ignoreHornOfPlenty = foodSource instanceof HornOfPlenty;
+			}
+			ScrollOfRecharging.charge( hero );
+			SpellSprite.show(hero, SpellSprite.CHARGE, 0, 1, 1);
+		}
+
+		if (hero.hasTalent(Talent.RELOADING_MEAL)) {
+			if (hero.belongings.weapon instanceof Gun) {
+				((Gun)hero.belongings.weapon).quickReload();
+				if (hero.pointsInTalent(Talent.RELOADING_MEAL) > 1) {
+					((Gun)hero.belongings.weapon).manualReload(1, true);
 				}
-				Buff.prolong( hero, Recharging.class, 1 + (hero.pointsInTalent(ENLIGHTENING_MEAL)) );
-				ScrollOfRecharging.charge( hero );
-				SpellSprite.show(hero, SpellSprite.CHARGE);
+			}
+		}
+		if (hero.hasTalent(Talent.INFINITE_BULLET_MEAL)) {
+			Buff.affect(hero, InfiniteBullet.class, 1+hero.pointsInTalent(Talent.INFINITE_BULLET_MEAL));
+		}
+		if (hero.hasTalent(Talent.CRITICAL_MEAL)) {
+			Buff.affect(hero, Sheath.CertainCrit.class).set(hero.pointsInTalent(Talent.CRITICAL_MEAL));
+		}
+		if (hero.hasTalent(Talent.NATURES_MEAL)) {
+			if (hero.pointsInTalent(Talent.NATURES_MEAL) == 1) {
+				for (int i : PathFinder.NEIGHBOURS4) {
+					int c = Dungeon.level.map[hero.pos + i];
+					if (c == Terrain.EMPTY || c == Terrain.EMPTY_DECO
+							|| c == Terrain.EMBERS || c == Terrain.GRASS) {
+						Level.set(hero.pos + i, Terrain.HIGH_GRASS);
+						GameScene.updateMap(hero.pos + i);
+						CellEmitter.get(hero.pos + i).burst(LeafParticle.LEVEL_SPECIFIC, 4);
+					}
+				}
+			} else {
+				for (int i : PathFinder.NEIGHBOURS8) {
+					int c = Dungeon.level.map[hero.pos + i];
+					if (c == Terrain.EMPTY || c == Terrain.EMPTY_DECO
+							|| c == Terrain.EMBERS || c == Terrain.GRASS) {
+						Level.set(hero.pos + i, Terrain.HIGH_GRASS);
+						GameScene.updateMap(hero.pos + i);
+						CellEmitter.get(hero.pos + i).burst(LeafParticle.LEVEL_SPECIFIC, 4);
+					}
+				}
+			}
+		}
+		if (hero.hasTalent(Talent.TOUGH_MEAL)) {
+			Buff.affect(hero, ArmorEmpower.class).set(3, 1+hero.pointsInTalent(Talent.TOUGH_MEAL));
+		}
+		if (hero.hasTalent(Talent.IMPREGNABLE_MEAL)) {
+			Buff.affect(hero, ArmorEnhance.class).set(hero.pointsInTalent(Talent.IMPREGNABLE_MEAL), 3);
+		}
+		if (hero.hasTalent(Talent.HEALING_MEAL)) { // 식사 시 디버프 제거 / 디버프가 없을 경우 3의 체력을 회복
+			if (hero.isHeroDebuffed()) {
+				PotionOfCleansing.cleanse(hero);
+			} else {
+				if (hero.pointsInTalent(Talent.HEALING_MEAL) > 1) {
+					hero.heal(3);
+				}
 			}
 		}
 		if (hero.hasTalent(Talent.RELOADING_MEAL)) {
@@ -1746,20 +1827,10 @@ public enum Talent {
 
 	public static void onPotionUsed( Hero hero, int cell, float factor ){
 		if (hero.hasTalent(LIQUID_WILLPOWER)){
-			if (hero.heroClass == HeroClass.WARRIOR) {
-				BrokenSeal.WarriorShield shield = hero.buff(BrokenSeal.WarriorShield.class);
-				if (shield != null) {
-					// 50/75% of total shield
-					int shieldToGive = Math.round(factor * shield.maxShield() * 0.25f * (1 + hero.pointsInTalent(LIQUID_WILLPOWER)));
-					hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldToGive), FloatingText.SHIELDING);
-					shield.supercharge(shieldToGive);
-				}
-			} else {
-				// 5/7.5% of max HP
-				int shieldToGive = Math.round( factor * hero.HT * (0.025f * (1+hero.pointsInTalent(LIQUID_WILLPOWER))));
-				hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldToGive), FloatingText.SHIELDING);
-				Buff.affect(hero, Barrier.class).setShield(shieldToGive);
-			}
+			// 6.5/10% of max HP
+			int shieldToGive = Math.round( factor * hero.HT * (0.030f + 0.035f*hero.pointsInTalent(LIQUID_WILLPOWER)));
+			hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldToGive), FloatingText.SHIELDING);
+			Buff.affect(hero, Barrier.class).setShield(shieldToGive);
 		}
 		if (hero.hasTalent(LIQUID_NATURE)){
 			ArrayList<Integer> grassCells = new ArrayList<>();
@@ -1886,7 +1957,8 @@ public enum Talent {
 				&& Random.Int(10) < Dungeon.hero.pointsInTalent(Talent.CLEANSE)){
 			boolean removed = false;
 			for (Buff b : Dungeon.hero.buffs()) {
-				if (b.type == Buff.buffType.NEGATIVE) {
+				if (b.type == Buff.buffType.NEGATIVE
+						&& !(b instanceof LostInventory)) {
 					b.detach();
 					removed = true;
 				}
@@ -2036,13 +2108,7 @@ public enum Talent {
 			damage += Random.NormalIntRange(0, 1+hero.pointsInTalent(Talent.SKILLED_HAND));
 		}
 
-		if (hero.hasTalent(Talent.NATURE_FRIENDLY) && (level.map[hero.pos] == Terrain.HIGH_GRASS || level.map[hero.pos] == Terrain.FURROWED_GRASS)) {
-			damage += Random.Int(1, hero.pointsInTalent(Talent.NATURE_FRIENDLY));
-		}
 
-		if (hero.hasTalent(Talent.NATURE_FRIENDLY) && (level.map[hero.pos] == Terrain.GRASS) && hero.heroClass != HeroClass.ADVENTURER) {
-			damage += Random.Int(1, hero.pointsInTalent(Talent.NATURE_FRIENDLY));
-		}
 
 		if (hero.buff(Talent.KineticBattle.class) != null) {
 			damage = hero.buff(Talent.KineticBattle.class).proc(damage);
@@ -2298,6 +2364,19 @@ public enum Talent {
 			hero.buff(PowerOfLife.PowerOfLifeBarrier.class).proc(damage);
 		}
 
+		if (hero.hasTalent(Talent.PROTECTIVE_SLASH)
+				&& hero.buff(Talent.ProtectiveSlashCooldown.class) == null
+				&& !Dungeon.level.adjacent(hero.pos, enemy.pos)) {
+			Buff.affect(hero, Barrier.class).setShield(1+2*Dungeon.hero.pointsInTalent(Talent.PROTECTIVE_SLASH));
+			Buff.affect(hero, Talent.ProtectiveSlashCooldown.class, 10);
+		}
+
+		if (hero.buff(KineticAttackTracker.class) != null) {
+			damage += Random.IntRange(hero.pointsInTalent(Talent.KINETIC_ATTACK), 2); //1~2 at +1, 2 at +2
+			Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
+			hero.buff(KineticAttackTracker.class).detach();
+		}
+
 		return damage;
 	}
 
@@ -2473,7 +2552,7 @@ public enum Talent {
 				Collections.addAll(tierTalents, BASIC_PRACTICE, MASTERS_INTUITION, DRAWING_ENHANCE, PARRING, ADRENALINE_SURGE);
 				break;
 			case ADVENTURER:
-				Collections.addAll(tierTalents, NATURE_FRIENDLY, SAFE_POTION, ROOT, PLANT_BARRIER, ROPE_MAKING);
+				Collections.addAll(tierTalents, HARVEST_BERRY, SAFE_POTION, ROOT, PROTECTIVE_SLASH, KINETIC_ATTACK);
 				break;
 			case KNIGHT:
 				Collections.addAll(tierTalents, TOUGH_MEAL, KNIGHTS_INTUITION, KINETIC_BATTLE, HARD_SHIELD, WAR_CRY	);
