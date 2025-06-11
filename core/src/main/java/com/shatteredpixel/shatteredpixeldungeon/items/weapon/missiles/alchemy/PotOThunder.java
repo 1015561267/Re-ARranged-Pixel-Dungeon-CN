@@ -1,12 +1,15 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.alchemy;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Electricity;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ThunderImbue;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Lightning;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.brews.ShockingBrew;
+import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfSharpshooting;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ForceCube;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
@@ -18,7 +21,7 @@ import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
-public class ThunderBolt extends MissileWeapon {
+public class PotOThunder extends MissileWeapon {
     {
         image = ItemSpriteSheet.THUNDERBOLT;
         hitSound = Assets.Sounds.LIGHTNING;
@@ -27,7 +30,7 @@ public class ThunderBolt extends MissileWeapon {
         tier = 5;
         sticky = true;
 
-        baseUses = 5;
+        baseUses = 10;
     }
 
     @Override
@@ -35,6 +38,7 @@ public class ThunderBolt extends MissileWeapon {
         Buff.affect(defender, Paralysis.class, Random.NormalIntRange(3, 5));
 
         defender.damage(magicDamage(this.buffedLvl()), new Electricity());
+        ThunderImbue.thunderEffect(defender.sprite);
 
         CharSprite s = defender.sprite;
         if (s != null && s.parent != null) {
@@ -57,17 +61,21 @@ public class ThunderBolt extends MissileWeapon {
     }
 
     @Override
-    public int max(int lvl) { //physical damage
-        return  2*tier +  //10 base
-                lvl;    //+1 per level
+    public int min(int lvl) {
+        return 10;
+    }
+
+    @Override
+    public int max(int lvl) {
+        return  10;
     }
 
     public int magicMin(int lvl) {
-        return tier+lvl;
+        return tier+lvl+RingOfSharpshooting.levelDamageBonus(Dungeon.hero);
     }
 
     public int magicMax(int lvl) {
-        return (5+lvl)*tier;
+        return (5+lvl+RingOfSharpshooting.levelDamageBonus(Dungeon.hero))*tier;
     }
 
     public int magicDamage(int lvl) { //magic damage
@@ -81,8 +89,8 @@ public class ThunderBolt extends MissileWeapon {
 
             cost = 3;
 
-            output = ThunderBolt.class;
-            outQuantity = 3;
+            output = PotOThunder.class;
+            outQuantity = 1;
         }
     }
 }
