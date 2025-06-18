@@ -71,11 +71,13 @@ public class SeedFindScene extends PixelScene {
 		Component content = list.content();
 		content.clear();
 
-		ShatteredPixelDungeon.scene().addToFront(new WndTextInput(Messages.get(this, "title"), Messages.get(this, "body"), Messages.get(this, "initial_value"), 1000, true, Messages.get(this, "find"), Messages.get(HeroSelectScene.class, "custom_seed_clear")) {
+		ShatteredPixelDungeon.scene().addToFront(new WndTextInput(Messages.get(this, "title"), Messages.get(this, "body"), Messages.get(this, "initial_value")+"\n", 1000, true, Messages.get(this, "find"), Messages.get(HeroSelectScene.class, "custom_seed_clear")) {
 			@Override
 			public void onSelect(boolean positive, String text) {
 				int floor = 31;
 				boolean floorOption = false;
+				text = text.toLowerCase(); //대문자를 소문자로 변경
+				text = text.replaceAll(" ", ""); //공백 제거
 				String up_to_floor;
 				if (Messages.lang() == Languages.KOREAN) {
 					up_to_floor = "층까지";
@@ -114,6 +116,7 @@ public class SeedFindScene extends PixelScene {
 						seedThread.interrupt();
 					}
 					int finalFloor = floor;
+					String finalText = text;
 					seedThread = new Thread(new Runnable() {
 						@Override
 						public void run() {
@@ -127,7 +130,7 @@ public class SeedFindScene extends PixelScene {
 								e.printStackTrace(pw);
 								String stackTrace = sw.toString();
 								//결과 문자열을 에러 메시지로 변경
-								resultContent = Messages.get(SeedFinder.class, "error", text, stackTrace);
+								resultContent = Messages.get(SeedFinder.class, "error", finalText, stackTrace);
 							}
 							String finalResultContent = resultContent;
 							Gdx.app.postRunnable(new Runnable() {
