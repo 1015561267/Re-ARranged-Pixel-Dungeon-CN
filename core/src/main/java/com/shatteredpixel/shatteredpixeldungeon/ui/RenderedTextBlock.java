@@ -32,7 +32,8 @@ import java.util.ArrayList;
 
 public class RenderedTextBlock extends Component {
 
-	private int maxWidth = Integer.MAX_VALUE;
+    public static boolean cnLocalizationFlag;
+    private int maxWidth = Integer.MAX_VALUE;
 	public int nLines;
 
 	private static final RenderedText SPACE = new RenderedText();
