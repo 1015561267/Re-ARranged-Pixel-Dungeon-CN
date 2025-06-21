@@ -130,7 +130,7 @@ public class UnformedBlade extends MeleeWeapon implements AlchemyWeapon {
 	public int damageRoll(Char owner) {
 		if (owner instanceof Hero) {
 			Hero hero = (Hero)owner;
-			Char enemy = hero.enemy();
+			Char enemy = hero.attackTarget();
 			if (enemy instanceof Mob && ((Mob) enemy).surprisedBy(hero)) {
 				//deals 50% toward max to max on surprise, instead of min to max.
 				int diff = max() - min();
@@ -149,7 +149,12 @@ public class UnformedBlade extends MeleeWeapon implements AlchemyWeapon {
 
 	@Override
 	public String desc() {
-		return super.desc() + "\n\n" + Messages.get(this, "energy", chargePerHit, chargeUsePerHit/2, charge, chargeCap);
+		String info = super.desc();
+
+		info += Messages.get(this, "energy", chargePerHit, chargeUsePerHit/2, charge, chargeCap);
+		info += "\n\n" + AlchemyWeapon.hintString(weaponRecipe());
+
+		return info;
 	}
 
 	@Override
@@ -228,11 +233,6 @@ public class UnformedBlade extends MeleeWeapon implements AlchemyWeapon {
 
 	public boolean useTargeting(){
 		return false;
-	}
-
-	@Override
-	protected int baseChargeUse(Hero hero, Char target){
-		return 2;
 	}
 
 	@Override

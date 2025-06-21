@@ -67,6 +67,7 @@ public class Lance extends MeleeWeapon implements AlchemyWeapon {
 
     @Override
     protected void duelistAbility(Hero hero, Integer target) {
+        usesTargeting = false;
         dashAbility(hero, target, this);
     }
 
@@ -78,7 +79,7 @@ public class Lance extends MeleeWeapon implements AlchemyWeapon {
         int range = 3+wep.buffedLvl();
 
         if (Dungeon.level.distance(hero.pos, target) > range){
-            GLog.w(Messages.get(MeleeWeapon.class, "ability_bad_position"));
+            GLog.w(Messages.get(Lance.class, "ability_bad_position"));
             return;
         }
 
@@ -87,7 +88,7 @@ public class Lance extends MeleeWeapon implements AlchemyWeapon {
         if (!dash.collisionPos.equals(target)
                 || Actor.findChar(target) != null
                 || (Dungeon.level.solid[target] && !Dungeon.level.passable[target])){
-            GLog.w(Messages.get(MeleeWeapon.class, "ability_bad_position"));
+            GLog.w(Messages.get(Lance.class, "ability_bad_position"));
             return;
         }
         wep.beforeAbilityUsed(hero, null);
@@ -221,6 +222,15 @@ public class Lance extends MeleeWeapon implements AlchemyWeapon {
     @Override
     public String discoverHint() {
         return AlchemyWeapon.hintString(weaponRecipe());
+    }
+
+    @Override
+    public String desc() {
+        String info = super.desc();
+
+        info += "\n\n" + AlchemyWeapon.hintString(weaponRecipe());
+
+        return info;
     }
 
 }
