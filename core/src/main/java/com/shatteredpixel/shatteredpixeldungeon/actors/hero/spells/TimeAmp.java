@@ -40,7 +40,7 @@ public class TimeAmp extends TargetedClericSpell {
     }
 
     private float duration() {
-        return 2f*Dungeon.hero.pointsInTalent(Talent.TIME_AMP);
+        return 2+2f*Dungeon.hero.pointsInTalent(Talent.TIME_AMP);
     }
 
     @Override
@@ -71,6 +71,7 @@ public class TimeAmp extends TargetedClericSpell {
         Sample.INSTANCE.play(Assets.Sounds.READ);
 
         onSpellCast(tome, hero);
+        onEnchanterSpellCast(ch, chargeUse(hero));
 
         if (ch.alignment == Char.Alignment.ENEMY) {
             ch.sprite.emitter().burst( SlowParticle.FACTORY, 6 );
@@ -79,7 +80,7 @@ public class TimeAmp extends TargetedClericSpell {
         } else if (ch.alignment == Char.Alignment.ALLY) {
             ch.sprite.emitter().burst( AccelerationParticle.FACTORY, 6 );
             Sample.INSTANCE.play(Assets.Sounds.CHARGEUP);
-            Buff.affect(ch, Swiftthistle.TimeBubble.class).set(duration());
+            Buff.affect(ch, Swiftthistle.TimeBubble.class).set(duration()/2);
         }
 
         hero.spendAndNext(Actor.TICK);

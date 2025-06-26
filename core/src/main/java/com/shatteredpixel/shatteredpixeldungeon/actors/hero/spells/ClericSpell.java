@@ -149,7 +149,7 @@ public abstract class ClericSpell {
 				spells.add(Smite.INSTANCE);
 
 			} else if (cleric.subClass == HeroSubClass.ENCHANTER) {
-				spells.add(SpellBlast.INSTANCE);
+				spells.add(SpellBurst.INSTANCE);
 			}
 
 			if (cleric.hasTalent(Talent.CLEANSE)){
@@ -203,8 +203,8 @@ public abstract class ClericSpell {
 			if (cleric.hasTalent(Talent.STUN)) {
 				spells.add(Stun.INSTANCE);
 			}
-			if (cleric.hasTalent(Talent.ELEMENT_IMBUE)) {
-				spells.add(ElementImbue.INSTANCE);
+			if (cleric.hasTalent(Talent.THUNDER_IMBUE)) {
+				spells.add(ThunderImbueSpell.INSTANCE);
 			}
 			if (cleric.hasTalent(Talent.ARCANE_ARMOR)) {
 				spells.add(ArcaneArmorSpell.INSTANCE);
@@ -284,11 +284,11 @@ public abstract class ClericSpell {
 		spells.add(HolyBombSpell.INSTANCE);
 		spells.add(Resurrection.INSTANCE);
 		//Enchanter spells
-		spells.add(SpellBlast.INSTANCE);
+		spells.add(SpellBurst.INSTANCE);
 		spells.add(TimeAmp.INSTANCE);
 		spells.add(WeakeningHex.INSTANCE);
 		spells.add(Stun.INSTANCE);
-		spells.add(ElementImbue.INSTANCE);
+		spells.add(ThunderImbueSpell.INSTANCE);
 		spells.add(ArcaneArmorSpell.INSTANCE);
 		spells.add(Enchant.INSTANCE);
 		//4 tier
