@@ -36,11 +36,11 @@ public class TimeAmp extends TargetedClericSpell {
 
     @Override
     public String desc() {
-        return Messages.get(this, "desc", duration(), duration() )+ "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
+        return Messages.get(this, "desc", duration(), duration()/2 )+ "\n\n" + Messages.get(this, "charge_cost", (int)chargeUse(Dungeon.hero));
     }
 
-    private float duration() {
-        return 2+2f*Dungeon.hero.pointsInTalent(Talent.TIME_AMP);
+    private int duration() {
+        return (int) (2+2f*Dungeon.hero.pointsInTalent(Talent.TIME_AMP));
     }
 
     @Override
