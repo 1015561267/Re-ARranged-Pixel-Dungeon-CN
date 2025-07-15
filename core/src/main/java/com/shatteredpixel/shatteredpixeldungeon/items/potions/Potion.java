@@ -669,4 +669,16 @@ public class Potion extends Item {
 			}
 		}
 	}
+
+	public void potionProc(Hero hero, Char enemy, float damage) {
+		//nothing by default
+	}
+
+	public ItemSprite.Glowing potionGlowing() {
+		return null; //no glow by default
+	}
+
+	public float talentFactor() {
+		return this.talentFactor;
+	}
 }

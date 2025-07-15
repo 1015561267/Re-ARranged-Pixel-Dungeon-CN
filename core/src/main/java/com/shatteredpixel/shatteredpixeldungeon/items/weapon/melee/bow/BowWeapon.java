@@ -5,10 +5,15 @@ import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BowMasterSkill;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CounterBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.items.ArrowBag;
 import com.shatteredpixel.shatteredpixeldungeon.items.ArrowItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfSharpshooting;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
@@ -23,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.noosa.Image;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
@@ -71,14 +77,13 @@ public class BowWeapon extends MeleeWeapon {
 
     public int arrowMax(int lvl) {
         if (Dungeon.hero != null) {
-            return 3*(tier()+1)
+            return 4*(tier()+1)
                     + lvl*(tier()+1)
                     + RingOfSharpshooting.levelDamageBonus(Dungeon.hero);
         } else {
-            return 3*(tier()+1) +
+            return 4*(tier()+1) +
                     lvl*(tier()+1);
         }
-
     }
 
     public int arrowMax() {
@@ -97,13 +102,17 @@ public class BowWeapon extends MeleeWeapon {
         //적과 근접한 상태에서 공격 시 40% 확률로, 혹은 기습 공격 시 적을 2타일 밀쳐냄
         if (Dungeon.level.adjacent(attacker.pos, defender.pos)
                 && ((defender instanceof Mob && ((Mob) defender).surprisedBy(attacker)) || Random.Float() < 0.4f)) {
-            pushEnemy(this, attacker, defender, 2);
+            pushEnemy(this, attacker, defender, 2 + Dungeon.hero.pointsInTalent(Talent.PUSHBACK));
         }
         return super.proc(attacker, defender, damage);
     }
 
     //arrows will copy all procs of the bow, but excludes the pushing effect
     public int arrowProc(Char attacker, Char defender, int damage) {
+        if (attacker == Dungeon.hero && Dungeon.hero.belongings.getItem(ArrowBag.class) != null) {
+            ArrowBag arrowBag = Dungeon.hero.belongings.getItem(ArrowBag.class);
+            damage = arrowBag.proc((Hero) attacker, defender, damage);
+        }
         return super.proc(attacker, defender, damage);
     }
 
@@ -173,7 +182,9 @@ public class BowWeapon extends MeleeWeapon {
     }
 
     public Arrow knockArrow(){
-        return new Arrow();
+        Arrow arrow = new Arrow();
+        arrow.reset(this);
+        return arrow;
     }
 
     @Override
@@ -181,35 +192,65 @@ public class BowWeapon extends MeleeWeapon {
         return knockArrow().targetingPos(user, dst);
     }
 
-    public class Arrow extends DisposableMissileWeapon {
+    public static class Arrow extends DisposableMissileWeapon {
         {
             image = ItemSpriteSheet.NORMAL_ARROW;
-            tier = BowWeapon.this.tier();
             hitSound = Assets.Sounds.HIT_ARROW;
         }
 
+        private BowWeapon arrowFrom;
+
+        private static final String ARROW_FROM = "arrowFrom";
+
+        @Override
+        public void storeInBundle(Bundle bundle) {
+            super.storeInBundle(bundle);
+
+            bundle.put(ARROW_FROM, arrowFrom);
+        }
+
+        @Override
+        public void restoreFromBundle(Bundle bundle) {
+            super.restoreFromBundle(bundle);
+
+            arrowFrom = (BowWeapon) bundle.get(ARROW_FROM);
+        }
+
+        public void reset(BowWeapon bow) {
+            arrowFrom = bow;
+            this.tier = bow.tier();
+        }
+
+        public boolean useBullet = false;
+
         @Override
         public int proc(Char attacker, Char defender, int damage) {
-            return BowWeapon.this.arrowProc(attacker, defender, damage);
+            if (attacker == Dungeon.hero && BowMasterSkill.isFastShot((Hero) attacker)) {
+                damage = Math.round(damage * BowMasterSkill.fastShotDamageMultiplier((Hero) attacker));
+            }
+            if (attacker == Dungeon.hero && attacker.buff(BowMasterSkill.class) != null) {
+                damage = attacker.buff(BowMasterSkill.class).proc(damage);
+            }
+            return arrowFrom.arrowProc(attacker, defender, damage);
         }
 
         @Override
         public int buffedLvl(){
-            return BowWeapon.this.buffedLvl();
+            return arrowFrom.buffedLvl();
         }
 
         @Override
         public int damageRoll(Char owner) {
-            int damage = arrowDamage();
+            int damage = arrowFrom.arrowDamage();
             if (owner instanceof Hero) {
                 Hero hero = (Hero)owner;
                 Char enemy = hero.attackTarget();
                 if (enemy instanceof Mob && ((Mob) enemy).surprisedBy(hero)) {
                     //deals 50% toward max to max on surprise, instead of min to max.
-                    int diff = arrowMax() - arrowMin();
+                    int diff = arrowFrom.arrowMax() - arrowFrom.arrowMin();
                     damage = augment.damageFactor(Hero.heroDamageIntRange(
-                            arrowMin() + Math.round(diff*(3/(3f+tier))), //75%, 60%, 50%, 43%, 38% toward max
-                            arrowMax()));
+                            arrowFrom.arrowMin() + Math.round(diff*(3/(3f+tier))), //75%, 60%, 50%, 43%, 38% toward max
+                            arrowFrom.arrowMax()));
                     int exStr = hero.STR() - STRReq();
                     if (exStr > 0) {
                         damage += Hero.heroDamageIntRange(0, exStr);
@@ -226,22 +267,33 @@ public class BowWeapon extends MeleeWeapon {
 
         @Override
         public boolean hasEnchant(Class<? extends Enchantment> type, Char owner) {
-            return BowWeapon.this.hasEnchant(type, owner);
+            return arrowFrom.hasEnchant(type, owner);
         }
 
         @Override
         public float delayFactor(Char owner) {
-            return BowWeapon.this.delayFactor(owner);
+            if (owner == Dungeon.hero && BowMasterSkill.isFastShot((Hero)owner)) {
+                return 0;
+            }
+            return arrowFrom.delayFactor(owner);
         }
 
         @Override
         public float accuracyFactor(Char owner, Char target) {
-            return BowWeapon.this.accuracyFactor(owner, target);
+            if (owner == Dungeon.hero && owner.buff(BowMasterSkill.class) != null && owner.buff(BowMasterSkill.class).isPowerShot()) {
+                return Hero.INFINITE_ACCURACY;
+            }
+
+            return arrowFrom.accuracyFactor(owner, target);
         }
 
         @Override
         public int STRReq() {
-            return BowWeapon.this.STRReq();
+            return arrowFrom.STRReq();
+        }
+
+        private float arrowPinChance() {
+            return 0.25f + 0.125f*Dungeon.hero.pointsInTalent(Talent.DEXTERITY);
         }
 
         @Override
@@ -249,7 +301,7 @@ public class BowWeapon extends MeleeWeapon {
             Char enemy = Actor.findChar( cell );
             if (enemy != null && !(enemy instanceof Hero)) {
                 if (curUser.shoot( enemy, this )) {
-                    if (Random.Float() < 0.25f) {
+                    if (Random.Float() < arrowPinChance()) {
                         if (enemy.isAlive()) {
                             Buff.affect(enemy, ArrowAttached.class).hit();
                         } else {
@@ -257,14 +309,14 @@ public class BowWeapon extends MeleeWeapon {
                         }
                     }
                 } else {
-                    if (Random.Float() < 0.25f) {
+                    if (Random.Float() < arrowPinChance()) {
                         dropArrow(cell);
                     }
                 }
             }
 
             if (enemy == null || enemy instanceof Hero) {
-                if (Random.Float() < 0.25f) {
+                if (Random.Float() < arrowPinChance()) {
                     dropArrow(cell);
                 }
             }
@@ -277,10 +329,21 @@ public class BowWeapon extends MeleeWeapon {
         }
 
         public void onShoot() {
-            Dungeon.bullet--;
+            if (useBullet) Dungeon.bullet--;
 
             if (Dungeon.hero.buff(PenetrationShotBuff.class) != null) {
                 Dungeon.hero.buff(PenetrationShotBuff.class).detach();
+            }
+            if (Dungeon.hero.subClass != HeroSubClass.BOWMASTER) {
+                Buff.affect(Dungeon.hero, BowFatigue.class).countUp(1);
+            }
+            if (Dungeon.hero.subClass == HeroSubClass.BOWMASTER) {
+                Buff.affect(Dungeon.hero, BowMasterSkill.class).shoot();
+            }
+            if (Dungeon.hero.hasTalent(Talent.SPECTRE_ARROW)) {
+                if (Random.Float() < Dungeon.hero.pointsInTalent(Talent.SPECTRE_ARROW)/6f && useBullet) {
+                    Dungeon.bullet++;
+                }
             }
 
             updateQuickslot();
@@ -410,6 +473,82 @@ public class BowWeapon extends MeleeWeapon {
 
         public int proc(int damage, int lvl, int tier) {
             return damage + lvl + Math.round(damage*(7-tier)*0.1f);
+        }
+    }
+
+    public static class BowFatigue extends CounterBuff {
+        {
+            type = buffType.NEGATIVE;
+        }
+
+        float duration;
+        final float MAX_DURATION = 3f;
+
+        @Override
+        public boolean act() {
+            duration -= TICK;
+            if (duration <= 0) {
+                detach();
+            }
+
+            spend(TICK);
+
+            return true;
+        }
+
+        @Override
+        public int icon() {
+            return BuffIndicator.WEAKNESS;
+        }
+
+        @Override
+        public void tintIcon(Image icon) {
+            icon.hardlight(0x999999);
+        }
+
+        @Override
+        public String desc() {
+            return Messages.get(this, "desc", (int)count(), Messages.decimalFormat("#.##", duration));
+        }
+
+        public static final String DURATION = "duration";
+
+        @Override
+        public void storeInBundle(Bundle bundle) {
+            super.storeInBundle(bundle);
+
+            bundle.put(DURATION, duration);
+        }
+
+        @Override
+        public void restoreFromBundle(Bundle bundle) {
+            super.restoreFromBundle(bundle);
+
+            duration = bundle.getFloat(DURATION);
+        }
+
+        @Override
+        public float iconFadePercent() {
+            return Math.max(0, ((MAX_DURATION-1) - duration) / (MAX_DURATION-1));
+        }
+
+        @Override
+        public void countUp(float inc) {
+            duration = MAX_DURATION;
+            super.countUp(inc);
+        }
+
+        @Override
+        public String iconTextDisplay() {
+            return (int)count()+"";
+        }
+
+        public int damage(int damage) {
+            if (this.count() > 4) {
+                int exceed = (int)this.count() - 4;
+                damage = Math.round(damage * (float)Math.pow(0.9f, exceed));
+            }
+            return damage;
         }
     }
 }

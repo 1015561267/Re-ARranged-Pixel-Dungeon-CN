@@ -41,6 +41,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SacrificialFire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Adrenaline;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AdrenalineSurge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ArmorEnhance;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BowMasterSkill;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ArtifactRecharge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Awakening;
@@ -70,6 +71,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HorseRiding;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invulnerability;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Juggling;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Levitation;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LostInventory;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicalCombo;
@@ -165,6 +167,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.elixirs.ElixirOfMight;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.elixirs.ElixirOfTalent;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.PotionOfDivineInspiration;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.PotionOfMagicalSight;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.DarkGold;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.Pickaxe;
 import com.shatteredpixel.shatteredpixeldungeon.items.remains.BrokenShield;
@@ -385,7 +388,8 @@ public class Hero extends Char {
 	private static final String EXPERIENCE	= "exp";
 	private static final String HTBOOST     = "htboost";
 	private static final String NECKLACE_BUFF = "necklaceBuff";
-	
+	private static final String JUST_MOVED	= "justMoved";
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 
@@ -407,6 +411,8 @@ public class Hero extends Char {
 		bundle.put( HTBOOST, HTBoost );
 
 		bundle.put( NECKLACE_BUFF, necklaceRing );
+
+		bundle.put( JUST_MOVED, justMoved );
 
 		belongings.storeInBundle( bundle );
 	}
@@ -437,6 +443,7 @@ public class Hero extends Char {
 		defenseSkill = bundle.getInt( DEFENSE );
 		
 		STR = bundle.getInt( STRENGTH );
+		justMoved = bundle.getBoolean( JUST_MOVED );
 
 		belongings.restoreFromBundle( bundle );
 	}
@@ -668,6 +675,8 @@ public class Hero extends Char {
 		if (hero.buff(Sheath.Sheathing.class) != null) {
 			accuracy *= 1.2f;
 		}
+
+		accuracy *= Juggling.accuracyFactor(this);
 
 		if (hero.buff(UnholyBible.Demon.class) != null) {
 			accuracy = INFINITE_ACCURACY;
@@ -993,6 +1002,8 @@ public class Hero extends Char {
 				speed *= 1 + 0.05f * hero.pointsInTalent(Talent.LIGHT_MOVEMENT) * (-aEnc);
 			}
 		}
+
+		speed *= BowMasterSkill.speedBoost(hero);
 
 		speed = AscensionChallenge.modifyHeroSpeed(speed);
 		
@@ -1833,6 +1844,12 @@ public class Hero extends Char {
 			chance += Math.max(0, (0.02f + 0.005f*pointsInTalent(Talent.WEAPON_MASTERY)) * (STR() - wep.STRReq()));
 		}
 
+		if (heroClass == HeroClass.ARCHER && wep instanceof MissileWeapon) {
+			chance = 0.03f;
+			chance += 0.03f*(lvl-1);
+			chance += Math.max(0, 0.03f*(STR()-wep.STRReq()));
+		}
+
 		if (buff(Sheath.CertainCrit.class) != null) {
 			chance += 1f;
 		}
@@ -2587,7 +2604,7 @@ public class Hero extends Char {
 	//FIXME this is a fairly crude way to track this, really it would be nice to have a short
 	//history of hero actions
 	public boolean justMoved = false;
-	
+
 	private boolean getCloser( final int target ) {
 
 		if (target == pos)
@@ -2708,6 +2725,10 @@ public class Hero extends Char {
 			if (hero.hasTalent(Talent.MIND_VISION) && Random.Float() < 0.01f*hero.pointsInTalent(Talent.MIND_VISION)) {
 				Buff.affect(this, MindVision.class, 1f);
 			}
+
+			BowMasterSkill.move();
+
+			Juggling.move();
 			
 			sprite.move(pos, step);
 			move(step);
@@ -3398,12 +3419,20 @@ public class Hero extends Char {
 		boolean foresight = buff(Foresight.class) != null;
 		boolean foresightScan = foresight && !Dungeon.level.mapped[pos];
 
-		if (foresightScan){
+		boolean search = buff(PotionOfMagicalSight.Search.class) != null;
+		boolean searchScan = search && !Dungeon.level.mapped[pos];
+
+		if (foresightScan || search){
 			Dungeon.level.mapped[pos] = true;
 		}
 
 		if (foresight) {
 			distance = Foresight.DISTANCE;
+			circular = true;
+		}
+
+		if (searchScan) {
+			distance = PotionOfMagicalSight.Search.DISTANCE;
 			circular = true;
 		}
 

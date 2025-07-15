@@ -23,12 +23,14 @@ package com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic;
 
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
 public class PotionOfShielding extends ExoticPotion {
@@ -47,6 +49,18 @@ public class PotionOfShielding extends ExoticPotion {
 			//~75% of a potion of healing
 			Buff.affect(hero, Barrier.class).setShield((int) (0.6f * hero.HT + 10));
 			hero.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString((int) (0.6f * hero.HT + 10)), FloatingText.SHIELDING );
+		}
+	}
+
+	@Override
+	public ItemSprite.Glowing potionGlowing() {
+		return new ItemSprite.Glowing( 0x00A0FF );
+	}
+
+	@Override
+	public void potionProc(Hero hero, Char enemy, float damage) {
+		if (!Dungeon.isChallenged(Challenges.NO_HEALING)){
+			Buff.affect(hero, Barrier.class).setShield(5+hero.HT/10);
 		}
 	}
 }
