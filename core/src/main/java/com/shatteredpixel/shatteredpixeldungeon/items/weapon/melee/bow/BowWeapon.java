@@ -8,10 +8,14 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BowMasterSkill;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CounterBuff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.GreaterHaste;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SharpShooterBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rogue.DeathMark;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Brute;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.items.ArrowBag;
 import com.shatteredpixel.shatteredpixeldungeon.items.ArrowItem;
@@ -25,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -103,15 +108,6 @@ public class BowWeapon extends MeleeWeapon {
         if (Dungeon.level.adjacent(attacker.pos, defender.pos)
                 && ((defender instanceof Mob && ((Mob) defender).surprisedBy(attacker)) || Random.Float() < 0.4f)) {
             pushEnemy(this, attacker, defender, 2 + Dungeon.hero.pointsInTalent(Talent.PUSHBACK));
-        }
-        return super.proc(attacker, defender, damage);
-    }
-
-    //arrows will copy all procs of the bow, but excludes the pushing effect
-    public int arrowProc(Char attacker, Char defender, int damage) {
-        if (attacker == Dungeon.hero && Dungeon.hero.belongings.getItem(ArrowBag.class) != null) {
-            ArrowBag arrowBag = Dungeon.hero.belongings.getItem(ArrowBag.class);
-            damage = arrowBag.proc((Hero) attacker, defender, damage);
         }
         return super.proc(attacker, defender, damage);
     }
@@ -198,15 +194,41 @@ public class BowWeapon extends MeleeWeapon {
             hitSound = Assets.Sounds.HIT_ARROW;
         }
 
+        @Override
+        public int min() {
+            return arrowFrom.arrowMin();
+        }
+
+        @Override
+        public int min(int lvl) {
+            return arrowFrom.arrowMin(lvl);
+        }
+
+        @Override
+        public int max() {
+            return arrowFrom.arrowMax();
+        }
+
+        @Override
+        public int max(int lvl) {
+            return arrowFrom.arrowMax(lvl);
+        }
+
         private BowWeapon arrowFrom;
+        public boolean useBullet = true;
+        public boolean isBurst = false;
 
         private static final String ARROW_FROM = "arrowFrom";
+        private static final String USE_BULLET = "useBullet";
+        private static final String IS_BURST = "isBurst";
 
         @Override
         public void storeInBundle(Bundle bundle) {
             super.storeInBundle(bundle);
 
             bundle.put(ARROW_FROM, arrowFrom);
+            bundle.put(USE_BULLET, useBullet);
+            bundle.put(IS_BURST, isBurst);
         }
 
         @Override
@@ -214,6 +236,8 @@ public class BowWeapon extends MeleeWeapon {
             super.restoreFromBundle(bundle);
 
             arrowFrom = (BowWeapon) bundle.get(ARROW_FROM);
+            useBullet = bundle.getBoolean(USE_BULLET);
+            isBurst = bundle.getBoolean(IS_BURST);
         }
 
         public void reset(BowWeapon bow) {
@@ -221,17 +245,20 @@ public class BowWeapon extends MeleeWeapon {
             this.tier = bow.tier();
         }
 
-        public boolean useBullet = false;
-
         @Override
         public int proc(Char attacker, Char defender, int damage) {
+            if (attacker == Dungeon.hero && Dungeon.hero.belongings.getItem(ArrowBag.class) != null) {
+                ArrowBag arrowBag = Dungeon.hero.belongings.getItem(ArrowBag.class);
+                damage = arrowBag.proc((Hero) attacker, defender, damage);
+            }
             if (attacker == Dungeon.hero && BowMasterSkill.isFastShot((Hero) attacker)) {
                 damage = Math.round(damage * BowMasterSkill.fastShotDamageMultiplier((Hero) attacker));
             }
             if (attacker == Dungeon.hero && attacker.buff(BowMasterSkill.class) != null) {
                 damage = attacker.buff(BowMasterSkill.class).proc(damage);
             }
-            return arrowFrom.arrowProc(attacker, defender, damage);
+
+            return super.proc(attacker, defender, damage);
         }
 
         @Override
@@ -261,6 +288,10 @@ public class BowWeapon extends MeleeWeapon {
                     damage = hero.buff(PenetrationShotBuff.class).proc(damage, this.buffedLvl(), this.tier);
                     Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
                 }
+
+                if (hero.buff(BowFatigue.class) != null) {
+                    damage = hero.buff(BowFatigue.class).damage(damage);
+                }
             }
             return damage;
         }
@@ -280,11 +311,25 @@ public class BowWeapon extends MeleeWeapon {
 
         @Override
         public float accuracyFactor(Char owner, Char target) {
+            float ACC = arrowFrom.accuracyFactor(owner, target);
             if (owner == Dungeon.hero && owner.buff(BowMasterSkill.class) != null && owner.buff(BowMasterSkill.class).isPowerShot()) {
                 return Hero.INFINITE_ACCURACY;
             }
 
-            return arrowFrom.accuracyFactor(owner, target);
+            if (isBurst && owner instanceof Hero && ((Hero) owner).hasTalent(Talent.BULLSEYE)) {
+                switch (((Hero) owner).pointsInTalent(Talent.BULLSEYE)) {
+                    case 3:
+                        return Hero.INFINITE_ACCURACY;
+                    case 2:
+                        ACC *= 5;
+                        break;
+                    case 1: default:
+                        ACC *= 2;
+                        break;
+                }
+            }
+
+            return ACC;
         }
 
         @Override
@@ -293,7 +338,11 @@ public class BowWeapon extends MeleeWeapon {
         }
 
         private float arrowPinChance() {
-            return 0.25f + 0.125f*Dungeon.hero.pointsInTalent(Talent.DEXTERITY);
+            float chance = 0.25f + 0.125f*Dungeon.hero.pointsInTalent(Talent.DEXTERITY);
+            if (Dungeon.hero.hasTalent(Talent.PERFECT_SHOT) && isBurst) {
+                chance = Math.max(chance, Dungeon.hero.pointsInTalent(Talent.PERFECT_SHOT)/3f);
+            }
+            return chance;
         }
 
         @Override
@@ -308,6 +357,9 @@ public class BowWeapon extends MeleeWeapon {
                             dropArrow(cell);
                         }
                     }
+                    if (!enemy.isAlive() && isBurst && Dungeon.hero.hasTalent(Talent.HURRICANE)) {
+                        Buff.affect(Dungeon.hero, GreaterHaste.class).set(1+Dungeon.hero.pointsInTalent(Talent.HURRICANE));
+                    }
                 } else {
                     if (Random.Float() < arrowPinChance()) {
                         dropArrow(cell);
@@ -318,6 +370,28 @@ public class BowWeapon extends MeleeWeapon {
             if (enemy == null || enemy instanceof Hero) {
                 if (Random.Float() < arrowPinChance()) {
                     dropArrow(cell);
+                }
+            }
+
+            if (enemy != null && isBurst && Dungeon.hero.hasTalent(Talent.RANGED_LETHALITY)
+                    && enemy.isAlive()
+                    && enemy.alignment == Char.Alignment.ENEMY
+                    && !Char.hasProp(enemy, Char.Property.BOSS)
+                    && !Char.hasProp(enemy, Char.Property.MINIBOSS)
+                    && (enemy.HP/(float)enemy.HT) <= 0.1f*Dungeon.hero.pointsInTalent(Talent.RANGED_LETHALITY)) {
+                enemy.HP = 0;
+                if (enemy.buff(Brute.BruteRage.class) != null){
+                    enemy.buff(Brute.BruteRage.class).detach();
+                }
+                if (!enemy.isAlive()) {
+                    enemy.die(this);
+                } else {
+                    //helps with triggering any on-damage effects that need to activate
+                    enemy.damage(-1, this);
+                    DeathMark.processFearTheReaper(enemy);
+                }
+                if (enemy.sprite != null) {
+                    enemy.sprite.showStatus(CharSprite.NEGATIVE, Messages.get(SharpShooterBuff.class, "executed"));
                 }
             }
 
@@ -352,6 +426,11 @@ public class BowWeapon extends MeleeWeapon {
         @Override
         public void throwSound() {
             Sample.INSTANCE.play( Assets.Sounds.ATK_SPIRITBOW, 1, Random.Float(0.87f, 1.15f) );
+        }
+
+        @Override
+        public void cast(final Hero user, int dst) {
+            super.cast(user, dst);
         }
     }
 

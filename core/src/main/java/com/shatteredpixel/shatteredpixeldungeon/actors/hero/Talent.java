@@ -751,12 +751,12 @@ public enum Talent {
 	TOUR_PERFORMANCE			(24, 11, 3),
 
 	//SharpShooter T3
-	STRONG_BOWSTRING			(25, 11, 3),
-	RECOIL_CONTROL				(26, 11, 3),
-	QUICK_HAND					(27, 11, 3),
-	MULTIPLE_HOMING				(28, 11, 3),
-	ACCURATE_HEADSHOT			(29, 11, 3),
-	KINETIC_FIRE				(30, 11, 3),
+	HURRICANE					(25, 11, 3),
+	PERFECT_SHOT				(26, 11, 3),
+	FOCUS_SHOT					(27, 11, 3),
+	BULLSEYE					(28, 11, 3),
+	RANGED_LETHALITY			(29, 11, 3),
+	CHANNELING					(30, 11, 3),
 
 	//Dash T4
 	LONGRANGE_DASH				(31, 11, 4),
@@ -1797,58 +1797,6 @@ public enum Talent {
 			SpellSprite.show(hero, SpellSprite.CHARGE, 0, 1, 1);
 		}
 
-		if (hero.hasTalent(Talent.RELOADING_MEAL)) {
-			if (hero.belongings.weapon instanceof Gun) {
-				((Gun)hero.belongings.weapon).quickReload();
-				if (hero.pointsInTalent(Talent.RELOADING_MEAL) > 1) {
-					((Gun)hero.belongings.weapon).manualReload(1, true);
-				}
-			}
-		}
-		if (hero.hasTalent(Talent.INFINITE_BULLET_MEAL)) {
-			Buff.affect(hero, InfiniteBullet.class, 1+hero.pointsInTalent(Talent.INFINITE_BULLET_MEAL));
-		}
-		if (hero.hasTalent(Talent.CRITICAL_MEAL)) {
-			Buff.affect(hero, Sheath.CertainCrit.class).set(hero.pointsInTalent(Talent.CRITICAL_MEAL));
-		}
-		if (hero.hasTalent(Talent.NATURES_MEAL)) {
-			if (hero.pointsInTalent(Talent.NATURES_MEAL) == 1) {
-				for (int i : PathFinder.NEIGHBOURS4) {
-					int c = level.map[hero.pos + i];
-					if (c == Terrain.EMPTY || c == Terrain.EMPTY_DECO
-							|| c == Terrain.EMBERS || c == Terrain.GRASS) {
-						Level.set(hero.pos + i, Terrain.HIGH_GRASS);
-						GameScene.updateMap(hero.pos + i);
-						CellEmitter.get(hero.pos + i).burst(LeafParticle.LEVEL_SPECIFIC, 4);
-					}
-				}
-			} else {
-				for (int i : PathFinder.NEIGHBOURS8) {
-					int c = level.map[hero.pos + i];
-					if (c == Terrain.EMPTY || c == Terrain.EMPTY_DECO
-							|| c == Terrain.EMBERS || c == Terrain.GRASS) {
-						Level.set(hero.pos + i, Terrain.HIGH_GRASS);
-						GameScene.updateMap(hero.pos + i);
-						CellEmitter.get(hero.pos + i).burst(LeafParticle.LEVEL_SPECIFIC, 4);
-					}
-				}
-			}
-		}
-		if (hero.hasTalent(Talent.TOUGH_MEAL)) {
-			Buff.affect(hero, ArmorEmpower.class).set(3, 1+hero.pointsInTalent(Talent.TOUGH_MEAL));
-		}
-		if (hero.hasTalent(Talent.IMPREGNABLE_MEAL)) {
-			Buff.affect(hero, ArmorEnhance.class).set(hero.pointsInTalent(Talent.IMPREGNABLE_MEAL), 3);
-		}
-		if (hero.hasTalent(Talent.HEALING_MEAL)) { // 식사 시 디버프 제거 / 디버프가 없을 경우 3의 체력을 회복
-			if (hero.isHeroDebuffed()) {
-				PotionOfCleansing.cleanse(hero);
-			} else {
-				if (hero.pointsInTalent(Talent.HEALING_MEAL) > 1) {
-					hero.heal(3);
-				}
-			}
-		}
 		if (hero.hasTalent(Talent.RELOADING_MEAL)) {
 			if (hero.belongings.weapon instanceof Gun) {
 				((Gun)hero.belongings.weapon).quickReload();
@@ -2986,7 +2934,7 @@ public enum Talent {
 				Collections.addAll(tierTalents, HABITUAL_HAND, SWIFT_JUGGLING, SKILLFUL_JUGGLING, FOCUS_MAINTAIN, FANCY_PERFORMANCE, TOUR_PERFORMANCE);
 				break;
 			case SHARPSHOOTER:
-				Collections.addAll(tierTalents, STRONG_BOWSTRING, RECOIL_CONTROL, QUICK_HAND, MULTIPLE_HOMING, ACCURATE_HEADSHOT, KINETIC_FIRE);
+				Collections.addAll(tierTalents, HURRICANE, PERFECT_SHOT, FOCUS_SHOT, BULLSEYE, RANGED_LETHALITY, CHANNELING);
 				break;
 		}
 		for (Talent talent : tierTalents){

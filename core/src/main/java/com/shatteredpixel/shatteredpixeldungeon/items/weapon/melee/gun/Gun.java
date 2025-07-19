@@ -16,6 +16,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FrostBullet;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.InfiniteBullet;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RouletteOfDeath;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SharpShooterBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
@@ -188,6 +189,8 @@ public class Gun extends MeleeWeapon {
 		hitSoundPitch = 0.8f;
 	}
 
+
+	private static final String ROUND = "round";
 	private static final String BARREL_MOD = "barrelMod";
 	private static final String MAGAZINE_MOD = "magazineMod";
 	private static final String BULLET_MOD = "bulletMod";
@@ -198,6 +201,7 @@ public class Gun extends MeleeWeapon {
 	@Override
 	public void storeInBundle(Bundle bundle) {
 		super.storeInBundle(bundle);
+		bundle.put(ROUND, round);
 		bundle.put(BARREL_MOD, barrelMod);
 		bundle.put(MAGAZINE_MOD, magazineMod);
 		bundle.put(BULLET_MOD, bulletMod);
@@ -210,6 +214,7 @@ public class Gun extends MeleeWeapon {
 	@Override
 	public void restoreFromBundle(Bundle bundle) {
 		super.restoreFromBundle(bundle);
+		round = bundle.getInt(ROUND);
 		barrelMod = bundle.getEnum(BARREL_MOD, BarrelMod.class);
 		magazineMod = bundle.getEnum(MAGAZINE_MOD, MagazineMod.class);
 		bulletMod = bundle.getEnum(BULLET_MOD, BulletMod.class);
@@ -644,6 +649,28 @@ public class Gun extends MeleeWeapon {
 			tier = Gun.this.tier();
 		}
 
+		public boolean isBurst = false;
+
+		@Override
+		public int min() {
+			return bulletMin();
+		}
+
+		@Override
+		public int min(int lvl) {
+			return bulletMin(lvl);
+		}
+
+		@Override
+		public int max() {
+			return bulletMax();
+		}
+
+		@Override
+		public int max(int lvl) {
+			return bulletMax(lvl);
+		}
+
 		public BulletMod whatBullet() { //현재 탄환이 어떤 개조인지를 반환함. 탄환 피해의 적 방어력 적용량 결정에 쓰임
 			return Gun.this.bulletMod;
 		}
@@ -691,7 +718,7 @@ public class Gun extends MeleeWeapon {
 				Math.round(damage * 0.5f);
 			}
 
-			return Gun.this.proc(attacker, defender, damage);
+			return super.proc(attacker, defender, damage);
 		}
 
 		@Override
@@ -702,6 +729,7 @@ public class Gun extends MeleeWeapon {
 		@Override
 		public int damageRoll(Char owner) {
 			int damage = bulletDamage();
+//			System.out.println("damage: "+damage);
 			return damage;
 		}
 
@@ -741,6 +769,19 @@ public class Gun extends MeleeWeapon {
 			}
 
 			ACC = Gun.this.barrelMod.bulletAccuracyFactor(ACC, Dungeon.level.adjacent(owner.pos, target.pos));
+
+			if (isBurst && owner instanceof Hero && ((Hero) owner).hasTalent(Talent.BULLSEYE)) {
+				switch (((Hero) owner).pointsInTalent(Talent.BULLSEYE)) {
+					case 3:
+						return Hero.INFINITE_ACCURACY;
+					case 2:
+						ACC *= 5;
+						break;
+					case 1: default:
+						ACC *= 2;
+						break;
+				}
+			}
 			return ACC;
 		}
 
@@ -867,7 +908,7 @@ public class Gun extends MeleeWeapon {
 		}
 
 		@Override
-		public void cast(final Hero user, final int dst) {
+		public void cast(final Hero user, int dst) {
 			super.cast(user, dst);
 		}
 	}

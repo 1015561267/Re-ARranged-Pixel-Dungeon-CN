@@ -754,6 +754,8 @@ public class Hero extends Char {
 			}
 		}
 
+		if (buff(EvasiveMove.class) != null) return INFINITE_EVASION;
+
 		if (buff(Quarterstaff.DefensiveStance.class) != null){
 			evasion *= 3;
 		}
@@ -1847,6 +1849,7 @@ public class Hero extends Char {
 		if (heroClass == HeroClass.ARCHER && wep instanceof MissileWeapon) {
 			chance = 0.03f;
 			chance += 0.03f*(lvl-1);
+			chance = Math.min(chance, 0.3f);
 			chance += Math.max(0, 0.03f*(STR()-wep.STRReq()));
 		}
 
@@ -1907,14 +1910,11 @@ public class Hero extends Char {
 
 	public int criticalDamage(int damage, Weapon wep, Char enemy) {
 		int max = wep.max();
-		if (STR() > wep.STRReq()) {
+		if (STR() > wep.STRReq() && !(wep instanceof Gun.Bullet)) {
 			max += STR()-wep.STRReq();
 		}
 		float multi = 1f+Math.max(0, critChance(enemy, wep)-1);
 		int bonusDamage = 0;
-		System.out.println(max);
-		System.out.println(damage);
-		System.out.println();
 
 		damage = (int)(max * 0.75f + damage * 0.25f);
 
