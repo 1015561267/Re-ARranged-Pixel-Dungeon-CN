@@ -42,6 +42,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Corruption;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CounterBuff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnhancedRings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.GreaterHaste;
@@ -63,7 +64,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RevealedArea;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Roots;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ScrollEmpower;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SwordAura;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.WandEmpower;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.WeaponEnhance;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
@@ -130,6 +130,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.bow.Bow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.bow.BowWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.bow.GreatBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.bow.LongBow;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.bow.ShortBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.gun.Gun;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
@@ -718,7 +719,7 @@ public enum Talent {
 	//Archer T1
 	FORCE_SAVING				(0, 11),
 	ARCHERS_INTUITION			(1, 11),
-	SURPRISE_PANIC				(2, 11),
+	LEG_SWEEP					(2, 11),
 	SURVIVAL_TECHNIQUE			(3, 11),
 	DEXTERITY					(4, 11),
 
@@ -728,7 +729,7 @@ public enum Talent {
 	NATURE_FRIENDLY				(7, 11),
 	PUSHBACK					(8, 11),
 	ARCHERS_FORESIGHT			(9, 11),
-	ROOTS_ENTWINE				(10, 11),
+	POWERFUL_CRIT				(10, 11),
 
 	//Archer T3
 	MAKESHIFT_BOW				(11, 11, 3),
@@ -1677,7 +1678,7 @@ public enum Talent {
 		//archer
 		if (talent == MAKESHIFT_BOW && hero.heroClass == HeroClass.ARCHER) {
 			BowWeapon bow = null;
-			switch (hero.pointsInTalent(Talent.BETTER_CHOICE)) {
+			switch (hero.pointsInTalent(Talent.MAKESHIFT_BOW)) {
 				case 0: default:
 					break;
 				case 1:
@@ -1698,6 +1699,17 @@ public enum Talent {
 				} else {
 					level.drop(bow, Dungeon.hero.pos).sprite.drop();
 				}
+			}
+		}
+
+		if (talent == ARCHERS_INTUITION && hero.heroClass == HeroClass.ARCHER && hero.pointsInTalent(ARCHERS_INTUITION) == 2) {
+			BowWeapon bow = new ShortBow();
+			bow.identify();
+			if (bow.doPickUp(Dungeon.hero)) {
+				GLog.i(Messages.get(Dungeon.hero, "you_now_have", bow.name()));
+				hero.spend(-1);
+			} else {
+				level.drop(bow, Dungeon.hero.pos).sprite.drop();
 			}
 		}
 	}
@@ -2490,7 +2502,7 @@ public enum Talent {
 			hero.buff(ForceSavingTracker.class).detach();
 		}
 
-		if (enemy instanceof Mob && enemy.buff(SurprisePanicTracker.class) == null && hero.hasTalent(Talent.SURPRISE_PANIC)) {
+		if (enemy instanceof Mob && enemy.buff(SurprisePanicTracker.class) == null && hero.hasTalent(Talent.LEG_SWEEP) && !enemy.flying) {
 			if (((Mob)enemy).surprisedBy(hero)) {
 				new FlavourBuff() {
 					{
@@ -2498,7 +2510,7 @@ public enum Talent {
 					}
 
 					public boolean act() {
-						Buff.affect(target, Terror.class, 1+2*hero.pointsInTalent(Talent.SURPRISE_PANIC));
+						Buff.affect(target, Cripple.class, 1+hero.pointsInTalent(Talent.LEG_SWEEP));
 						return super.act();
 					}
 				}.attachTo(enemy);
@@ -2700,7 +2712,7 @@ public enum Talent {
 				Collections.addAll(tierTalents, SCAR_ATTACK, DOCTORS_INTUITION, FINISH_ATTACK, FIRST_AID_TREAT, BREAKTHROUGH);
 				break;
 			case ARCHER:
-				Collections.addAll(tierTalents, FORCE_SAVING, ARCHERS_INTUITION, SURPRISE_PANIC, SURVIVAL_TECHNIQUE, DEXTERITY);
+				Collections.addAll(tierTalents, FORCE_SAVING, ARCHERS_INTUITION, LEG_SWEEP, SURVIVAL_TECHNIQUE, DEXTERITY);
 				break;
 		}
 		for (Talent talent : tierTalents){
@@ -2747,7 +2759,7 @@ public enum Talent {
 				Collections.addAll(tierTalents, HEALING_MEAL, RECYCLING, HIGH_POWER, RADIATION, STRONG_HEALPOWER, DIET);
 				break;
 			case ARCHER:
-				Collections.addAll(tierTalents, FIGHTING_MEAL, FULLY_POTION, NATURE_FRIENDLY, PUSHBACK, ARCHERS_FORESIGHT, ROOTS_ENTWINE);
+				Collections.addAll(tierTalents, FIGHTING_MEAL, FULLY_POTION, NATURE_FRIENDLY, PUSHBACK, ARCHERS_FORESIGHT, POWERFUL_CRIT);
 				break;
 		}
 		for (Talent talent : tierTalents){
