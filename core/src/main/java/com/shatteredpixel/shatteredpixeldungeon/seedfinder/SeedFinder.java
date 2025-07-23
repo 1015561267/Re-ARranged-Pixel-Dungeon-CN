@@ -239,6 +239,7 @@ public class SeedFinder {
 	}
 
 	private boolean testSeedALL(String seed, int floors) {
+        try {
 		SPDSettings.customSeed(seed);
 		Dungeon.initSeed();
 		GamesInProgress.selectedClass = HeroClass.WARRIOR;
@@ -373,8 +374,11 @@ public class SeedFinder {
 			}
 			Dungeon.depth++;
 		}
-		return false;
-	}
+		    return false;
+        } catch (Exception e) {
+            return false;//in case that evan have some problem in map generate or so,just ignore this seed as we only need to find a qualified one
+        }
+    }
 
 	private static boolean areAllTrue(boolean[] array)
 	{

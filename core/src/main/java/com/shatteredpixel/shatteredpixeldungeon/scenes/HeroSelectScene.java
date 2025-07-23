@@ -668,6 +668,8 @@ public class HeroSelectScene extends PixelScene {
 			StyledButton btnSeedTest = new StyledButton(Chrome.Type.BLANK, Messages.get(HeroSelectScene.class, "seed_find"), 6){
 				@Override
 				protected void onClick() {
+                    ShatteredPixelDungeon.scene().add(new WndMessage("cocoa自己禁用了查种与种子分析功能，请考虑从主菜单按钮使用JDSALing & Showerr提供的版本"
+                    ));
 					//ShatteredPixelDungeon.switchScene( SeedFindScene.class );
 				}
 			};
@@ -679,6 +681,8 @@ public class HeroSelectScene extends PixelScene {
 			StyledButton btnSeedAnalysis = new StyledButton(Chrome.Type.BLANK, Messages.get(HeroSelectScene.class, "seed_analysis"), 6){
 				@Override
 				protected void onClick() {
+                    ShatteredPixelDungeon.scene().add(new WndMessage("cocoa自己禁用了查种与种子分析功能，请考虑从主菜单按钮使用JDSALing & Showerr提供的版本"
+                    ));
 					//ShatteredPixelDungeon.switchScene( SeedAnalysisScene.class );
 				}
 			};
