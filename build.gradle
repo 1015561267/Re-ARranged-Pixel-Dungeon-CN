@@ -25,7 +25,7 @@ allprojects {
         appJavaCompatibility = JavaVersion.VERSION_1_8
 
         appAndroidCompileSDK = 33 //compile SDK is still 33 atm as we're sticking with AGP 8.0.2
-        appAndroidMinSDK = 14
+        appAndroidMinSDK = 21
         appAndroidTargetSDK = 34
 
         gdxVersion = '1.12.1'
