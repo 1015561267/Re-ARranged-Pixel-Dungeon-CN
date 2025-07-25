@@ -389,6 +389,10 @@ public class Badges {
 		}
 	}
 
+	public static void forceLoad(Bundle bundle) {
+        global = restore( bundle );
+    }
+
 	public static void saveGlobal(){
 		saveGlobal(false);
 	}

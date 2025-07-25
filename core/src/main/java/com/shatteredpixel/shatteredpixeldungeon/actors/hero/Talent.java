@@ -469,7 +469,7 @@ public enum Talent {
 	GUNNERS_INTUITION			(1,  6),	//총기를 장착 시 감정/습득 시 저주 여부 감정
 	SPEEDY_MOVE					(2,  6),	//적을 처음 공격하면 초신속 2/3턴
 	SAFE_RELOAD					(3,  6),	//재장전 시 3/5의 방어막을 얻음
-	CLOSE_COMBAT				(4,  6),	//총기 근접 공격력이 0-4/0-6 증가
+	CLOSE_COMBAT				(4,  6),	//총기 근접 공격력이 0-2/0-4 증가
 	//Gunner T2
 	INFINITE_BULLET_MEAL		(5,  6),	//식사에 1턴만 소모하고, 식사 시 2/3턴의 무한 탄환을 얻음
 	INSCRIBED_BULLET			(6,  6),	//주문서 사용 시 5/10개의 탄환을 얻음
@@ -523,7 +523,7 @@ public enum Talent {
 	//Samurai T2
 	CRITICAL_MEAL				(5, 7),	//식사에 1턴만 소모, 식사 시 다음 1/2회의 물리 공격에 반드시 치명타 발생
 	INSCRIBED_LETHALITY			(6, 7),	//주문서 사용 시 다음 1/2회의 물리 공격에 반드시 치명타 발생
-	UNEXPECTED_SLASH			(7, 7),	//적을 처음 공격하면 치명 확률 +10/20% 증가
+	UNEXPECTED_SLASH			(7, 7),	//납도 중 치명 확률 +10%/20% 증가
 	DRAGONS_EYE					(8, 7),	//납도 중 주변 반경 3/4타일 이내의 적 위치를 파악할 수 있게 됨
 	WEAPON_MASTERY				(9, 7),	//무기의 힘 요구 수치를 넘은 힘 1당 치명 확률 +1/+2%
 	CRITICAL_THROW				(10, 7),	//투척 무기와 탄환의 치명 확률이 +25/50% 증가
@@ -1186,8 +1186,6 @@ public enum Talent {
 
 	//Samurai 1-3 meta
 	public static class DrawEnhanceMetaTracker extends Buff {}
-	//Samurai 2-3
-	public static class UnexpectedSlashTracker extends Buff {}
 
 	//Knight 1-1
 	public static class ArmorEmpower extends Buff {
