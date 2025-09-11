@@ -338,7 +338,7 @@ public class FloatingText extends RenderedTextBlock {
 		KindOfWeapon wep = null;
 		if (attacker instanceof Hero) wep = ((Hero) attacker).belongings.attackingWeapon();
 		if (attacker instanceof MirrorImage) wep = Dungeon.hero.belongings.weapon();
-		if (attacker instanceof Statue) wep = ((Statue)attacker).weapon();
+		if (attacker instanceof Statue) wep = (KindOfWeapon)((Statue)attacker).weapon();
 		if (attacker instanceof DriedRose.GhostHero) wep = ((DriedRose.GhostHero)attacker).weapon();
 
 		Armor arm = null;
@@ -432,7 +432,7 @@ public class FloatingText extends RenderedTextBlock {
 		KindOfWeapon wep = null;
 		if (attacker instanceof Hero) wep = ((Hero) attacker).belongings.attackingWeapon();
 		if (attacker instanceof MirrorImage) wep = Dungeon.hero.belongings.weapon();
-		if (attacker instanceof Statue) wep = ((Statue)attacker).weapon();
+		if (attacker instanceof Statue) wep = (KindOfWeapon)((Statue)attacker).weapon();
 		if (attacker instanceof DriedRose.GhostHero) wep = ((DriedRose.GhostHero)attacker).weapon();
 
 		Armor arm = null;

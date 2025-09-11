@@ -72,10 +72,6 @@ public class Statue extends Mob {
 		weapon.cursed = false;
 		weapon.enchant( Enchantment.random() );
 	}
-
-	public Weapon weapon(){
-		return weapon;
-	}
 	
 	private static final String WEAPON	= "weapon";
 	
