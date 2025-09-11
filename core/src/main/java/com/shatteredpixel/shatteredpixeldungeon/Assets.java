@@ -94,36 +94,88 @@ public class Assets {
 		public static final String RADIAL_MENU      = "interfaces/radial_menu.png";
 
 		//alternative UIs
-		public static String CHROME   = "interfaces/chrome.png"; //alternative
-		public static String TOOLBAR  = "interfaces/toolbar.png"; //alternative
-		public static String STATUS   = "interfaces/status_pane.png"; //alternative
-		public static String MENU     = "interfaces/menu_pane.png"; //alternative
-		public static String MENU_BTN = "interfaces/menu_button.png"; //alternative
-		public static String BOSSHP   = "interfaces/boss_hp.png"; //alternative
-		public static String TALENT_BUTTON    = "interfaces/talent_button.png"; //alternative
-		static {
+		public static String CHROME   = "interfaces/chrome.png";
+		public static String TOOLBAR  = "interfaces/toolbar.png";
+		public static String STATUS   = "interfaces/status_pane.png";
+		public static String MENU     = "interfaces/menu_pane.png";
+		public static String MENU_BTN = "interfaces/menu_button.png";
+		public static String BOSSHP   = "interfaces/boss_hp.png";
+		public static String TALENT_BUTTON    = "interfaces/talent_button.png";
+
+		public static String getChrome() {
 			switch (SPDSettings.uiType()) {
 				case 0: default:
-					break;
+					return CHROME;
 				case 1: //shattered pd ui
-					CHROME = "interfaces/alternative/shattered/chrome.png";
-					TOOLBAR = "interfaces/alternative/shattered/toolbar.png";
-					STATUS = "interfaces/alternative/shattered/status_pane.png";
-					MENU = "interfaces/alternative/shattered/menu_pane.png";
-					MENU_BTN = "interfaces/alternative/shattered/menu_button.png";
-					BOSSHP = "interfaces/alternative/shattered/boss_hp.png";
-					TALENT_BUTTON = "interfaces/alternative/shattered/talent_button.png";
-					break;
+					return "interfaces/alternative/shattered/chrome.png";
 				case 2: //blue archive pd ui
-					CHROME = "interfaces/alternative/bluearchive/chrome.png";
-					TOOLBAR = "interfaces/alternative/bluearchive/toolbar.png";
-					STATUS = "interfaces/alternative/bluearchive/status_pane.png";
-					MENU = "interfaces/alternative/bluearchive/menu_pane.png";
-					MENU_BTN = "interfaces/alternative/bluearchive/menu_button.png";
-					BOSSHP = "interfaces/alternative/bluearchive/boss_hp.png";
-					TALENT_BUTTON = "interfaces/alternative/bluearchive/talent_button.png";
-					break;
+					return "interfaces/alternative/bluearchive/chrome.png";
+			}
+		}
 
+		public static String getToolBar() {
+			switch (SPDSettings.uiType()) {
+				case 0: default:
+					return TOOLBAR;
+				case 1: //shattered pd ui
+					return "interfaces/alternative/shattered/toolbar.png";
+				case 2: //blue archive pd ui
+					return "interfaces/alternative/bluearchive/toolbar.png";
+			}
+		}
+
+		public static String getStatus() {
+			switch (SPDSettings.uiType()) {
+				case 0: default:
+					return STATUS;
+				case 1: //shattered pd ui
+					return "interfaces/alternative/shattered/status_pane.png";
+				case 2: //blue archive pd ui
+					return "interfaces/alternative/bluearchive/status_pane.png";
+			}
+		}
+
+		public static String getMenu() {
+			switch (SPDSettings.uiType()) {
+				case 0: default:
+					return MENU;
+				case 1: //shattered pd ui
+					return "interfaces/alternative/shattered/menu_pane.png";
+				case 2: //blue archive pd ui
+					return "interfaces/alternative/bluearchive/menu_pane.png";
+			}
+		}
+
+		public static String getMenuBtn() {
+			switch (SPDSettings.uiType()) {
+				case 0: default:
+					return MENU_BTN;
+				case 1: //shattered pd ui
+					return "interfaces/alternative/shattered/menu_button.png";
+				case 2: //blue archive pd ui
+					return "interfaces/alternative/bluearchive/menu_button.png";
+			}
+		}
+
+		public static String getBossHP() {
+			switch (SPDSettings.uiType()) {
+				case 0: default:
+					return BOSSHP;
+				case 1: //shattered pd ui
+					return "interfaces/alternative/shattered/boss_hp.png";
+				case 2: //blue archive pd ui
+					return "interfaces/alternative/bluearchive/boss_hp.png";
+			}
+		}
+
+		public static String getTalentBtn() {
+			switch (SPDSettings.uiType()) {
+				case 0: default:
+					return TALENT_BUTTON;
+				case 1: //shattered pd ui
+					return "interfaces/alternative/shattered/talent_button.png";
+				case 2: //blue archive pd ui
+					return "interfaces/alternative/bluearchive/talent_button.png";
 			}
 		}
 	}

@@ -86,6 +86,7 @@ public class Sheath extends Item {
     }
 
     public static boolean isFlashSlash() {
+        Hero hero = Dungeon.hero;
         return hero.subClass == HeroSubClass.MASTER &&
                     hero.buff(Sheathing.class) != null &&
                     hero.buff(FlashSlashCooldown.class) == null &&
@@ -309,8 +310,7 @@ public class Sheath extends Item {
 
     }
 
-    public static class CriticalAttacking extends FlavourBuff {}
-    public static class CriticalAttack extends FlavourBuff {}
+    public static class CriticalAttack extends Buff {}
 
     public static class CertainCrit extends Buff {
         {
